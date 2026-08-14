@@ -1,14 +1,17 @@
-"""RF Intelligence Framework - Signal Analysis & Processing"""
-from .fft_engine import FFTEngine
-from .psd_analyzer import PSDAnalyzer
-from .spectrogram import SpectrogramGenerator
+"""RF Intelligence Framework - Spectrum analysis and signal processing."""
+
+from .fft_analyzer import FFTAnalyzer
+from .psd import PowerSpectralDensity
+from .spectrogram import Spectrogram
 from .peak_detector import PeakDetector
-from .burst_detector import BurstDetector
-from .noise_estimator import NoiseEstimator
 from .signal_occupancy import SignalOccupancy
+from .noise_floor import NoiseFloorEstimation
 from .anomaly_detector import AnomalyDetector
+from .waterfall import WaterfallDisplay
+from .interference_detector import InterferenceDetector
 
 __all__ = [
-    'FFTEngine', 'PSDAnalyzer', 'SpectrogramGenerator', 'PeakDetector',
-    'BurstDetector', 'NoiseEstimator', 'SignalOccupancy', 'AnomalyDetector'
+    'FFTAnalyzer', 'PowerSpectralDensity', 'Spectrogram',
+    'PeakDetector', 'SignalOccupancy', 'NoiseFloorEstimation',
+    'AnomalyDetector', 'WaterfallDisplay', 'InterferenceDetector',
 ]

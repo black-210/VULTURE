@@ -1,53 +1,45 @@
-"""Anomaly Detector - Signal Anomaly Detection"""
+"""Anomaly detection in RF signals."""
 import numpy as np
-from sklearn.ensemble import IsolationForest
-from typing import Tuple, np.ndarray
+from scipy import signal
 import logging
 
 logger = logging.getLogger(__name__)
 
 class AnomalyDetector:
-    """Detect anomalies in RF signals"""
+    """Anomaly detection methods."""
     
-    def __init__(self, contamination: float = 0.1):
-        self.model = IsolationForest(contamination=contamination, random_state=42)
-        self.is_fitted = False
+    @staticmethod
+    def detect_interference(psd, frequencies, threshold_multiplier=5.0):
+        noise_floor = np.percentile(psd, 20)
+        threshold = noise_floor * threshold_multiplier
+        anomalies = []
+        for i, power in enumerate(psd):
+            if power > threshold:
+                anomalies.append((frequencies[i], power))
+        return anomalies
     
-    def fit(self, features: np.ndarray) -> 'AnomalyDetector':
-        """Fit anomaly detector
-        
-        Args:
-            features: Feature matrix
-        
-        Returns:
-            Self
-        """
-        self.model.fit(features)
-        self.is_fitted = True
-        return self
+    @staticmethod
+    def detect_burst(data, fs=1e6, threshold=3.0):
+        envelope = np.abs(signal.hilbert(data))
+        mean = np.mean(envelope)
+        std = np.std(envelope)
+        burst_threshold = mean + threshold * std
+        bursts = []
+        in_burst = False
+        start_idx = 0
+        for i, amp in enumerate(envelope):
+            if amp > burst_threshold and not in_burst:
+                in_burst = True
+                start_idx = i
+            elif amp <= burst_threshold and in_burst:
+                in_burst = False
+                duration = (i - start_idx) / fs
+                bursts.append((start_idx / fs, i / fs, duration))
+        return bursts
     
-    def detect(self, features: np.ndarray) -> np.ndarray:
-        """Detect anomalies
-        
-        Args:
-            features: Feature matrix
-        
-        Returns:
-            Anomaly labels (-1 for anomaly, 1 for normal)
-        """
-        if not self.is_fitted:
-            raise ValueError("Model not fitted")
-        return self.model.predict(features)
-    
-    def get_anomaly_scores(self, features: np.ndarray) -> np.ndarray:
-        """Get anomaly scores
-        
-        Args:
-            features: Feature matrix
-        
-        Returns:
-            Anomaly scores
-        """
-        if not self.is_fitted:
-            raise ValueError("Model not fitted")
-        return self.model.score_samples(features)
+    @staticmethod
+    def isolation_forest_detection(data, contamination=0.1):
+        from sklearn.ensemble import IsolationForest
+        X = data.reshape(-1, 1)
+        clf = IsolationForest(contamination=contamination)
+        return clf.fit_predict(X)

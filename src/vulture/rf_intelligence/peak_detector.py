@@ -1,41 +1,35 @@
-"""Peak Detector - Signal Peak Analysis"""
+"""Peak detection in frequency domain."""
 import numpy as np
-from scipy.signal import find_peaks
-from typing import Tuple, List, Dict
+from scipy import signal
 import logging
 
 logger = logging.getLogger(__name__)
 
 class PeakDetector:
-    """Detect and analyze signal peaks"""
+    """Peak detection methods."""
     
-    def detect_peaks(self, signal: np.ndarray, height: float = None,
-                    distance: int = None) -> Tuple[np.ndarray, Dict]:
-        """Detect peaks in signal
-        
-        Args:
-            signal: Input signal
-            height: Minimum peak height
-            distance: Minimum distance between peaks
-        
-        Returns:
-            Peak indices and properties
-        """
-        peaks, properties = find_peaks(signal, height=height, distance=distance)
+    @staticmethod
+    def find_peaks(magnitude, height=None, distance=10, prominence=None):
+        peaks, properties = signal.find_peaks(magnitude, height=height, distance=distance, prominence=prominence)
         return peaks, properties
     
-    def get_strongest_peaks(self, freqs: np.ndarray, psd: np.ndarray,
-                           num_peaks: int = 10) -> List[Tuple[float, float]]:
-        """Get strongest peaks
-        
-        Args:
-            freqs: Frequency array
-            psd: Power spectral density
-            num_peaks: Number of peaks to return
-        
-        Returns:
-            List of (frequency, power) tuples
-        """
-        peak_indices = np.argsort(psd)[-num_peaks:]
-        peaks = [(freqs[i], psd[i]) for i in sorted(peak_indices, reverse=True)]
+    @staticmethod
+    def get_peak_frequencies(peaks, frequencies):
+        return frequencies[peaks]
+    
+    @staticmethod
+    def get_top_peaks(magnitude, frequencies, num_peaks=5):
+        peaks, _ = signal.find_peaks(magnitude)
+        if len(peaks) == 0:
+            return np.array([]), np.array([])
+        top_indices = np.argsort(magnitude[peaks])[-num_peaks:]
+        top_peaks = peaks[top_indices]
+        return top_peaks, frequencies[top_peaks]
+    
+    @staticmethod
+    def cwt_peak_detection(data, widths=None):
+        if widths is None:
+            widths = np.arange(1, 31)
+        cwtmatr = signal.morlet2(min(10, len(data)), m=6)
+        peaks = signal.find_peaks_cwt(data, widths)
         return peaks
