@@ -1,13 +1,15 @@
-"""VULTURE Core Engine - Registry, Configuration, Permissions, Plugin System"""
+"""VULTURE Core Engine - Framework Registry, Dependency Injection, Configuration."""
 
-from .registry import FrameworkRegistry
-from .config import ConfigManager
-from .permissions import PermissionManager
-from .plugin_system import PluginManager
+from .framework_registry import FrameworkRegistry
+from .dependency_injection import DependencyInjector
+from .config_manager import ConfigurationManager
+from .plugin_system import PluginSystem
+from .security_policy import SecurityPolicy
 
 __all__ = [
-    "FrameworkRegistry",
-    "ConfigManager",
-    "PermissionManager",
-    "PluginManager",
+    'FrameworkRegistry',
+    'DependencyInjector',
+    'ConfigurationManager',
+    'PluginSystem',
+    'SecurityPolicy',
 ]
