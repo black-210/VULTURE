@@ -1,14 +1,8 @@
-"""Signal Processing Framework - DSP Algorithms"""
-from .filter_bank import FilterBank
-from .fir_filter import FIRFilter
-from .iir_filter import IIRFilter
-from .window_functions import WindowFunctions
-from .correlation import CorrelationEngine
-from .convolution import ConvolutionEngine
-from .synchronization import Synchronizer
+"""Signal Processing Framework - Filters, windowing, and DSP operations."""
+from .filters import FIRFilter, IIRFilter
+from .windowing import WindowingFunctions
+from .correlation import Correlation
 from .matched_filter import MatchedFilter
-
-__all__ = [
-    'FilterBank', 'FIRFilter', 'IIRFilter', 'WindowFunctions',
-    'CorrelationEngine', 'ConvolutionEngine', 'Synchronizer', 'MatchedFilter'
-]
+from .synchronization import Synchronization
+from .gpu_acceleration import GPUAcceleration
+__all__ = ['FIRFilter', 'IIRFilter', 'WindowingFunctions', 'Correlation', 'MatchedFilter', 'Synchronization', 'GPUAcceleration']

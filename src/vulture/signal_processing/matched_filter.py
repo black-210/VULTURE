@@ -1,61 +1,18 @@
-"""Matched Filter - Optimal Signal Detection"""
+"""Matched filter for signal detection."""
 import numpy as np
-from scipy.signal import correlate
-from typing import Tuple
+from scipy import signal
 import logging
-
 logger = logging.getLogger(__name__)
-
 class MatchedFilter:
-    """Matched filter for signal detection"""
-    
-    def __init__(self, template: np.ndarray):
-        """Initialize matched filter
-        
-        Args:
-            template: Template signal for matching
-        """
+    def __init__(self, template):
         self.template = template
-        self.energy = np.sum(np.abs(template) ** 2)
-    
-    def detect(self, signal: np.ndarray, threshold: float = None) -> Tuple[np.ndarray, np.ndarray]:
-        """Detect template in signal
-        
-        Args:
-            signal: Input signal
-            threshold: Detection threshold
-        
-        Returns:
-            (Detection indices, Detection statistics)
-        """
-        correlation = correlate(signal, self.template, mode='valid')
-        correlation_normalized = correlation / np.sqrt(self.energy)
-        
-        if threshold is None:
-            threshold = np.mean(correlation_normalized) + 3 * np.std(correlation_normalized)
-        
-        detections = np.where(correlation_normalized > threshold)[0]
-        
-        return detections, correlation_normalized
-    
-    def get_snr(self, signal: np.ndarray, noise_only: np.ndarray = None) -> float:
-        """Estimate SNR for detection
-        
-        Args:
-            signal: Input signal
-            noise_only: Noise-only sample
-        
-        Returns:
-            SNR estimate
-        """
-        correlation = correlate(signal, self.template, mode='valid')
-        signal_power = np.max(np.abs(correlation)) ** 2
-        
-        if noise_only is not None:
-            noise_corr = correlate(noise_only, self.template, mode='valid')
-            noise_power = np.mean(np.abs(noise_corr) ** 2)
-        else:
-            noise_power = np.mean(np.abs(correlation) ** 2) - signal_power
-        
-        snr = signal_power / (noise_power + 1e-10)
-        return 10 * np.log10(snr + 1e-10)
+        self.filter_coeffs = np.flip(np.conj(template))
+    def apply(self, data):
+        output = np.convolve(data, self.filter_coeffs, mode='same')
+        return output
+    def get_detection_threshold(self, data, pfa=1e-4):
+        noise_power = np.var(data)
+        template_power = np.sum(np.abs(self.template)**2)
+        snr_threshold = -2 * np.log(pfa)
+        threshold = np.sqrt(snr_threshold * noise_power * template_power)
+        return threshold
