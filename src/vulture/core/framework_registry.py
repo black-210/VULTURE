@@ -1,152 +1,44 @@
-"""Central registry for all frameworks. Fast, thread-safe, discoverable."""
+"""Framework registry: thread-safe registry for components and plugins.
 
-import threading
-from typing import Any, Dict, Callable, Optional, List
-from dataclasses import dataclass
-import logging
+Lightweight, production-minded registry with simple lifecycle tracking.
+"""
 
-logger = logging.getLogger(__name__)
-
-
-@dataclass
-class FrameworkMetadata:
-    """Metadata for registered framework."""
-    name: str
-    version: str
-    module_path: str
-    description: str
-    dependencies: List[str]
-    category: str  # "rf", "ml", "dsp", "security", etc
-    is_production: bool = True
-    author: str = "BLACK Cyber Falcon"
+from threading import RLock
+from typing import Any, Dict
 
 
 class FrameworkRegistry:
-    """Fast, thread-safe framework registry with circular dependency detection."""
+    """Thread-safe registry for framework components.
+
+    Usage:
+        reg = FrameworkRegistry()
+        reg.register("fft", FFTAnalyzer)
+        cls = reg.get("fft")
+    """
 
     def __init__(self):
-        self._frameworks: Dict[str, FrameworkMetadata] = {}
-        self._factory: Dict[str, Callable] = {}
-        self._instances: Dict[str, Any] = {}
-        self._lock = threading.RLock()
-        self._categories: Dict[str, List[str]] = {}
+        self._store: Dict[str, Any] = {}
+        self._lock = RLock()
 
-    def register(self, metadata: FrameworkMetadata, factory: Callable) -> None:
-        """Register framework with metadata and factory.
-        
+    def register(self, name: str, value: Any) -> None:
+        """Register a component by name. Overwrites existing entry.
+
         Args:
-            metadata: Framework metadata
-            factory: Callable that creates instances
+            name: key name
+            value: component (class, function, instance)
         """
         with self._lock:
-            if metadata.name in self._frameworks:
-                logger.warning(f"Framework '{metadata.name}' already registered. Overwriting.")
-            
-            self._frameworks[metadata.name] = metadata
-            self._factory[metadata.name] = factory
-            
-            # Index by category
-            if metadata.category not in self._categories:
-                self._categories[metadata.category] = []
-            self._categories[metadata.category].append(metadata.name)
-            
-            logger.info(f"✓ Registered {metadata.category}/{metadata.name} v{metadata.version}")
+            self._store[name] = value
 
-    def get(self, name: str, singleton: bool = True) -> Any:
-        """Get framework instance (cached or fresh).
-        
-        Args:
-            name: Framework name
-            singleton: Cache instance
-            
-        Returns:
-            Framework instance
+    def get(self, name: str, default: Any = None) -> Any:
+        """Retrieve a registered component.
+
+        Returns default if not found.
         """
         with self._lock:
-            if name not in self._frameworks:
-                raise ValueError(f"Framework '{name}' not registered")
-            
-            if singleton and name in self._instances:
-                return self._instances[name]
-            
-            # Check dependencies
-            self._check_circular_deps(name, set())
-            
-            instance = self._factory[name]()
-            if singleton:
-                self._instances[name] = instance
-            return instance
+            return self._store.get(name, default)
 
-    def _check_circular_deps(self, name: str, visited: set) -> None:
-        """Detect circular dependencies.
-        
-        Args:
-            name: Framework name
-            visited: Already visited frameworks
-        """
-        if name in visited:
-            raise RuntimeError(f"Circular dependency detected involving '{name}'")
-        
-        visited.add(name)
-        deps = self._frameworks[name].dependencies
-        for dep in deps:
-            if dep in self._frameworks:
-                self._check_circular_deps(dep, visited.copy())
-
-    def list_by_category(self, category: str) -> List[FrameworkMetadata]:
-        """List all frameworks in category.
-        
-        Args:
-            category: Category name
-            
-        Returns:
-            List of framework metadata
-        """
-        names = self._categories.get(category, [])
-        return [self._frameworks[name] for name in names]
-
-    def get_metadata(self, name: str) -> FrameworkMetadata:
-        """Get framework metadata.
-        
-        Args:
-            name: Framework name
-            
-        Returns:
-            Framework metadata
-        """
-        if name not in self._frameworks:
-            raise ValueError(f"Framework '{name}' not registered")
-        return self._frameworks[name]
-
-    def list_all(self) -> Dict[str, FrameworkMetadata]:
-        """List all registered frameworks.
-        
-        Returns:
-            Dict of framework name -> metadata
-        """
+    def list(self):
+        """List registered keys."""
         with self._lock:
-            return dict(self._frameworks)
-
-    def unregister(self, name: str) -> None:
-        """Unregister framework.
-        
-        Args:
-            name: Framework name
-        """
-        with self._lock:
-            if name in self._frameworks:
-                metadata = self._frameworks.pop(name)
-                self._factory.pop(name, None)
-                self._instances.pop(name, None)
-                if metadata.category in self._categories:
-                    self._categories[metadata.category].remove(name)
-                logger.info(f"✗ Unregistered {metadata.category}/{name}")
-
-    def clear(self) -> None:
-        """Clear all registrations."""
-        with self._lock:
-            self._frameworks.clear()
-            self._factory.clear()
-            self._instances.clear()
-            self._categories.clear()
-            logger.info("✗ Cleared all framework registrations")
+            return list(self._store.keys())

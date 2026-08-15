@@ -1,89 +1,42 @@
-"""FIR/IIR filter design and application."""
+"""FIR filter design and application helpers.
 
+Wraps scipy.signal firwin and lfilter/filtfilt where available, with numpy
+fallbacks to keep the API usable in minimal environments.
+"""
+from typing import Sequence
 import numpy as np
-from scipy import signal
-from typing import Tuple
-import logging
 
-logger = logging.getLogger(__name__)
+try:
+    from scipy import signal
+except Exception:  # pragma: no cover
+    signal = None
 
 
 class Filters:
-    """Production-grade filter design and application."""
-
     @staticmethod
     def design_fir(order: int, cutoff: float, window: str = 'hamming') -> np.ndarray:
-        """Design FIR filter.
-        
+        """Design a lowpass FIR filter.
+
         Args:
-            order: Filter order
-            cutoff: Normalized cutoff frequency (0-1)
-            window: Window type
-            
-        Returns:
-            FIR coefficients
+            order: filter order (number of taps)
+            cutoff: normalized cutoff (0..0.5)
+            window: window name
         """
-        b = signal.firwin(order, cutoff, window=window)
-        logger.debug(f"Designed FIR filter: order={order}, cutoff={cutoff}")
-        return b
+        numtaps = max(3, order + 1)
+        if signal is not None:
+            return signal.firwin(numtaps, cutoff, window=window)
+        # Simple sinc-based design
+        n = np.arange(numtaps) - (numtaps - 1) / 2.0
+        h = np.sinc(2 * cutoff * n)
+        w = np.hamming(numtaps)
+        h *= w
+        h /= np.sum(h)
+        return h
 
     @staticmethod
-    def design_iir(order: int, cutoff: float, btype: str = 'low') -> Tuple[np.ndarray, np.ndarray]:
-        """Design IIR Butterworth filter.
-        
-        Args:
-            order: Filter order
-            cutoff: Normalized cutoff frequency
-            btype: 'low', 'high', 'band', 'stop'
-            
-        Returns:
-            (b, a) coefficients
-        """
-        b, a = signal.butter(order, cutoff, btype=btype)
-        logger.debug(f"Designed IIR filter: order={order}, type={btype}")
-        return b, a
-
-    @staticmethod
-    def apply_fir(data: np.ndarray, b: np.ndarray) -> np.ndarray:
-        """Apply FIR filter using filtfilt (zero-phase).
-        
-        Args:
-            data: Input signal
-            b: FIR coefficients
-            
-        Returns:
-            Filtered signal
-        """
-        return signal.filtfilt(b, [1], data)
-
-    @staticmethod
-    def apply_iir(data: np.ndarray, b: np.ndarray, a: np.ndarray) -> np.ndarray:
-        """Apply IIR filter using filtfilt (zero-phase).
-        
-        Args:
-            data: Input signal
-            b, a: IIR coefficients
-            
-        Returns:
-            Filtered signal
-        """
-        return signal.filtfilt(b, a, data)
-
-    @staticmethod
-    def cascade_filters(data: np.ndarray, filters: list) -> np.ndarray:
-        """Apply multiple filters in cascade.
-        
-        Args:
-            data: Input signal
-            filters: List of (b, a) or (b,) tuples
-            
-        Returns:
-            Filtered signal
-        """
-        result = data.copy()
-        for f in filters:
-            if len(f) == 2:
-                result = Filters.apply_iir(result, f[0], f[1])
-            else:
-                result = Filters.apply_fir(result, f[0])
-        return result
+    def apply_fir(data: Sequence[float], b: np.ndarray) -> np.ndarray:
+        data = np.asarray(data)
+        if signal is not None:
+            return signal.lfilter(b, [1.0], data)
+        # naive convolution fallback
+        return np.convolve(data, b, mode='same')

@@ -1,79 +1,44 @@
-"""High-performance FFT/IFFT analysis with zero-padding, windowing, RFFT support."""
+"""FFT Analyzer utilities for RF intelligence.
 
-import numpy as np
-from scipy import signal
+Provides convenience around numpy.fft with windowing and zero-padding.
+"""
 from typing import Tuple, Optional
-import logging
-
-logger = logging.getLogger(__name__)
+import numpy as np
 
 
 class FFTAnalyzer:
-    """Production-grade FFT analysis."""
+    """Compute FFT with common options (windowing, zero-pad).
 
-    def __init__(self, fft_size: int = 1024, window: str = 'hann'):
-        """
-        Args:
-            fft_size: FFT size
-            window: Window type (hann, hamming, blackman, etc)
-        """
-        self.fft_size = fft_size
-        self.window_name = window
-        self.window = signal.get_window(window, fft_size)
+    Example:
+        analyzer = FFTAnalyzer(fft_size=1024)
+        freqs, mags = analyzer.compute_fft(signal, fs=1000)
+    """
 
-    def compute_fft(self, data: np.ndarray, zero_pad: int = 0) -> Tuple[np.ndarray, np.ndarray]:
-        """Compute FFT with zero-padding.
-        
-        Args:
-            data: Input signal
-            zero_pad: Additional zero-padding factor
-            
-        Returns:
-            (frequencies, magnitudes)
-        """
-        n_fft = self.fft_size + zero_pad
-        windowed = data[:self.fft_size] * self.window
-        fft_result = np.fft.fft(windowed, n=n_fft)
-        magnitudes = np.abs(fft_result[:n_fft // 2]) / len(self.window)
-        frequencies = np.fft.fftfreq(n_fft, d=1.0)[:n_fft // 2]
-        return frequencies, magnitudes
+    def __init__(self, fft_size: int = 1024, window: Optional[str] = "hann"):
+        self.fft_size = int(fft_size)
+        self.window = window
 
-    def compute_rfft(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Real FFT (faster for real signals).
-        
-        Args:
-            data: Real input signal
-            
-        Returns:
-            (frequencies, magnitudes)
-        """
-        windowed = data[:self.fft_size] * self.window
-        rfft_result = np.fft.rfft(windowed, n=self.fft_size)
-        magnitudes = np.abs(rfft_result) / len(self.window)
-        frequencies = np.fft.rfftfreq(self.fft_size, d=1.0)
-        return frequencies, magnitudes
+    def compute_fft(self, data: np.ndarray, fs: float = 1.0) -> Tuple[np.ndarray, np.ndarray]:
+        """Return frequency axis and magnitude spectrum (one-sided for real inputs).
 
-    def compute_ifft(self, fft_data: np.ndarray) -> np.ndarray:
-        """Inverse FFT.
-        
         Args:
-            fft_data: FFT data
-            
-        Returns:
-            Time-domain signal
+            data: 1D signal
+            fs: sampling frequency
         """
-        return np.fft.ifft(fft_data).real[:self.fft_size]
-
-    def compute_power_spectrum(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Compute power spectrum (magnitude^2).
-        
-        Args:
-            data: Input signal
-            
-        Returns:
-            (frequencies, power_db)
-        """
-        freqs, mags = self.compute_fft(data)
-        power = mags ** 2
-        power_db = 10 * np.log10(power + 1e-12)  # Avoid log(0)
-        return freqs, power_db
+        data = np.asarray(data)
+        n = self.fft_size
+        # apply window
+        if self.window:
+            win = np.hanning(len(data)) if self.window == "hann" else np.ones(len(data))
+        else:
+            win = np.ones(len(data))
+        x = data * win
+        # zero-pad or truncate
+        if len(x) < n:
+            x = np.pad(x, (0, n - len(x)))
+        else:
+            x = x[:n]
+        X = np.fft.rfft(x)
+        freqs = np.fft.rfftfreq(n, d=1.0 / fs)
+        mags = np.abs(X)
+        return freqs, mags
