@@ -38,7 +38,7 @@ Install (recommended in a virtualenv)
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # macOS / Linux
-.venv\Scripts\activate     # Windows PowerShell
+.venv\\Scripts\\activate     # Windows PowerShell
 python -m pip install --upgrade pip
 pip install -r requirements.txt  # optional, repository does not yet include a full requirements file
 pip install pytest
@@ -81,21 +81,56 @@ res = run(args)
 print(res)
 ```
 
-### Spectrum Intelligence
+### SPECTRUM INTELLIGENCE FRAMEWORK — Spectrum Intelligence
+- Real-time Spectrum Analysis — معالجة طيفية في الوقت الحقيقي: استقبال إطارات IQ، حساب FFT/PSD، وتوليد بيانات الطيف اللازمة للمراقبة واكتشاف التداخل.
+- Frequency Allocation Visualization — عرض وتصور تخصيص الطيف بتسميات القنوات/النطاقات لتسهيل متابعة التخصيصات والتداخلات المحتملة.
+- Interference Detection — كشف التداخلات والاشتباكات الطيفية عبر قواعد عتبية أو خوارزميات كشف الشذوذ.
+- Spectrum Monitoring — رصد مستمر للطيف مع تخزين مؤشرات الأداء والإنذارات.
+
 Files: `vulture/spectrum/*`
 - `RealTimeAnalyzer` — process_frame(iq_frame) returns spectrum, peaks, metadata.
 - `SpectrumVisualizer` — render_spectrum(spectrum_data, out_path)
 
-### Physics Laboratory
+مثال مختصر (مثال بالعربي)
+```py
+from vulture.spectrum.real_time import RealTimeAnalyzer
+ana = RealTimeAnalyzer(sample_rate=2.4e6)
+res = ana.process_frame(iq_frame)
+print(res['meta'])
+```
+
+### PHYSICS LABORATORY
+- Electromagnetic Calculations — حسابات فيزيائية أساسية لكهربية ومغناطيسية الموجات.
+- Link Budget Analysis — تحليل ميزانية الرابط: حساب خسائر المسار، الربح، وpower at receiver.
+- Antenna Calculations — حسابات للصيغة الفعّالة للمجال، الفتحة الفعالة، والربح.
+- Propagation Models — نماذج الانتشار (حرّة، نموذج Hata، ITU) كمراجع أولية.
+
 Files: `vulture/physics/*`
 - `Antenna` — simple antenna helpers, `effective_area()`
 - `LinkBudget` — `estimate_rx_power_dbm(freq_hz, distance_m)`
 
-Example
+مثال
 ```py
 from vulture.physics.antenna import Antenna
 ant = Antenna(gain_dbi=8, frequency_hz=2.4e9)
 print(ant.effective_area())
+```
+
+### DATASET INTELLIGENCE FRAMEWORK
+- Multi-Format Support (CSV, JSON, Parquet, HDF5, NPY, SigMF) — دعم تحميل البيانات من صيغ متعددة، مع fallbacks إن لم تكن مكتبات معينة متاحة.
+- Data Validation & Profiling — أدوات بسيطة للتحقق من شكل البيانات وجودتها (validate_schema، profiling لاحقاً).
+- Cleaning & Transformation — تنظيف القيم المفقودة، تحويلات مبدئية، ووظائف تقسيم البيانات.
+- Train/Test Splitting — تقسيم بيانات التدريب والاختبار مع دعم sklearn إن توفر.
+
+Files: `vulture/dataset/*`
+- Loaders: `load_csv`, `load_json`, `load_npy`, `load_parquet` (depend on pandas/numpy)
+- `validate_schema(dataset, schema)` — simple schema validator
+- `train_test_split`, `clean_missing` — transform helpers
+
+مثال
+```py
+from vulture.dataset.io import load_csv
+df = load_csv('data/example.csv')
 ```
 
 ### SDR / IQ
