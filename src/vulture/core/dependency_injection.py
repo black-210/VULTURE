@@ -1,109 +1,122 @@
-"""Dependency Injection Container - Manage component dependencies."""
+"""Lightweight DI container with circular dependency detection and lifecycle management."""
 
-from typing import Dict, Any, Type, Callable, Optional, List
-from functools import wraps
+import threading
+from typing import Any, Callable, Dict, Set, Optional, TypeVar
+from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
+
+
+class Lifecycle(Enum):
+    """Dependency lifecycle management."""
+    SINGLETON = "singleton"  # One instance per container
+    TRANSIENT = "transient"  # New instance each time
+    SCOPED = "scoped"  # One instance per scope
+
 
 class DependencyInjector:
-    """Lightweight dependency injection container."""
-    
+    """Fast, thread-safe DI container with circular dependency detection."""
+
     def __init__(self):
+        self._services: Dict[str, tuple[Callable, Lifecycle]] = {}
         self._singletons: Dict[str, Any] = {}
-        self._factories: Dict[str, Callable] = {}
-        self._resolving: set = set()
-        logger.info("DependencyInjector initialized")
-    
-    def register_singleton(self, name: str, instance: Any) -> None:
-        """Register singleton instance."""
-        self._singletons[name] = instance
-        logger.debug(f"Singleton registered: {name}")
-    
-    def register_factory(self, name: str, factory: Callable) -> None:
-        """Register factory function for creating instances."""
-        self._factories[name] = factory
-        logger.debug(f"Factory registered: {name}")
-    
-    def register_class(self, name: str, cls: Type, **kwargs) -> None:
-        """Register class with constructor arguments."""
-        def factory():
-            return cls(**kwargs)
-        self._factories[name] = factory
-        logger.debug(f"Class factory registered: {name}")
-    
-    def get(self, name: str) -> Any:
-        """Get service instance (singleton or factory)."""
-        if name in self._resolving:
-            raise ValueError(f"Circular dependency detected: {name}")
+        self._scopes: Dict[int, Dict[str, Any]] = {}  # scope_id -> instances
+        self._current_scope: int = 0
+        self._scope_lock = threading.RLock()
+        self._lock = threading.RLock()
+
+    def register(self, name: str, factory: Callable, lifecycle: Lifecycle = Lifecycle.SINGLETON) -> None:
+        """Register dependency.
         
-        if name in self._singletons:
-            return self._singletons[name]
+        Args:
+            name: Service name
+            factory: Factory callable
+            lifecycle: Lifecycle mode
+        """
+        with self._lock:
+            self._services[name] = (factory, lifecycle)
+            logger.debug(f"Registered {name} ({lifecycle.value})")
+
+    def resolve(self, name: str, scope_id: Optional[int] = None) -> Any:
+        """Resolve dependency.
         
-        if name not in self._factories:
-            raise ValueError(f"Service not registered: {name}")
+        Args:
+            name: Service name
+            scope_id: Scope ID for scoped dependencies
+            
+        Returns:
+            Service instance
+        """
+        return self._resolve(name, set(), scope_id)
+
+    def _resolve(self, name: str, visited: Set[str], scope_id: Optional[int] = None) -> Any:
+        """Internal resolve with circular dependency detection."""
+        if name in visited:
+            raise RuntimeError(f"Circular dependency detected: {' -> '.join(list(visited) + [name])}")
         
-        self._resolving.add(name)
-        try:
-            instance = self._factories[name]()
-            return instance
-        finally:
-            self._resolving.discard(name)
-    
-    def get_singleton(self, name: str) -> Optional[Any]:
-        """Get singleton if exists, None otherwise."""
-        return self._singletons.get(name)
-    
-    def has(self, name: str) -> bool:
-        """Check if service is registered."""
-        return name in self._singletons or name in self._factories
-    
-    def remove(self, name: str) -> bool:
-        """Remove service registration."""
-        removed = False
-        if name in self._singletons:
-            del self._singletons[name]
-            removed = True
-        if name in self._factories:
-            del self._factories[name]
-            removed = True
+        if name not in self._services:
+            raise ValueError(f"Service '{name}' not registered")
         
-        if removed:
-            logger.debug(f"Service removed: {name}")
+        factory, lifecycle = self._services[name]
         
-        return removed
-    
+        # Singleton
+        if lifecycle == Lifecycle.SINGLETON:
+            with self._lock:
+                if name in self._singletons:
+                    return self._singletons[name]
+                instance = factory()
+                self._singletons[name] = instance
+                return instance
+        
+        # Scoped
+        elif lifecycle == Lifecycle.SCOPED:
+            if scope_id is None:
+                scope_id = self._current_scope
+            with self._scope_lock:
+                if scope_id not in self._scopes:
+                    self._scopes[scope_id] = {}
+                if name in self._scopes[scope_id]:
+                    return self._scopes[scope_id][name]
+                instance = factory()
+                self._scopes[scope_id][name] = instance
+                return instance
+        
+        # Transient
+        else:
+            visited.add(name)
+            return factory()
+
+    def create_scope(self) -> int:
+        """Create new scope.
+        
+        Returns:
+            Scope ID
+        """
+        with self._scope_lock:
+            self._current_scope += 1
+            self._scopes[self._current_scope] = {}
+            return self._current_scope
+
+    def dispose_scope(self, scope_id: int) -> None:
+        """Dispose scope.
+        
+        Args:
+            scope_id: Scope ID
+        """
+        with self._scope_lock:
+            if scope_id in self._scopes:
+                # Call dispose() if available on instances
+                for instance in self._scopes[scope_id].values():
+                    if hasattr(instance, 'dispose'):
+                        instance.dispose()
+                del self._scopes[scope_id]
+
     def clear(self) -> None:
-        """Clear all registrations."""
-        self._singletons.clear()
-        self._factories.clear()
-        logger.info("DependencyInjector cleared")
-    
-    def get_registered_services(self) -> List[str]:
-        """Get list of all registered services."""
-        return list(set(self._singletons.keys()) | set(self._factories.keys()))
-    
-    def inject(self, **dependencies):
-        """Decorator for dependency injection."""
-        def decorator(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                injected = {}
-                for dep_name, param_name in dependencies.items():
-                    if self.has(dep_name):
-                        injected[param_name] = self.get(dep_name)
-                
-                kwargs.update(injected)
-                return func(*args, **kwargs)
-            return wrapper
-        return decorator
-    
-    def get_summary(self) -> Dict[str, Any]:
-        """Get injector summary."""
-        return {
-            'total_singletons': len(self._singletons),
-            'total_factories': len(self._factories),
-            'total_services': len(self.get_registered_services()),
-            'services': self.get_registered_services(),
-        }
+        """Clear all services and singletons."""
+        with self._lock:
+            self._services.clear()
+            self._singletons.clear()
+            self._scopes.clear()

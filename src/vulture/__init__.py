@@ -1,27 +1,18 @@
-"""🦅 VULTURE - Autonomous Intelligence & Research Platform
+"""VULTURE: Production-Grade Intelligence & Research Platform.
 
-Production-grade, modular intelligence, research, engineering, and automation platform.
-
-Features:
-- 40+ Integrated Frameworks
-- Real RF/SDR Analysis
-- AI-Powered Engineering Copilot
-- Production-Grade ML/DL
-- Scientific Computing
-- Professional PyQt6 GUI + CLI
-- Plugin Architecture
-- Complete Testing & Documentation
+Real implementation. Real algorithms. No mockups.
 """
 
 __version__ = "0.1.0"
 __author__ = "BLACK Cyber Falcon"
-__license__ = "Apache-2.0"
+__license__ = "AGPL-3.0"
 
-# Framework imports
-from vulture.core import FrameworkRegistry, ConfigManager, PermissionManager
+from vulture.core.framework_registry import FrameworkRegistry
+from vulture.core.config_manager import ConfigManager
+from vulture.core.dependency_injection import DependencyInjector
 
 __all__ = [
     "FrameworkRegistry",
     "ConfigManager",
-    "PermissionManager",
+    "DependencyInjector",
 ]

@@ -1,15 +1,17 @@
-"""VULTURE Core Engine - Framework Registry, Dependency Injection, Configuration."""
+"""Core engine: Registry, DI, Config, Plugin System, Security."""
 
-from .framework_registry import FrameworkRegistry
-from .dependency_injection import DependencyInjector
-from .config_manager import ConfigurationManager
-from .plugin_system import PluginSystem
-from .security_policy import SecurityPolicy
+from vulture.core.framework_registry import FrameworkRegistry
+from vulture.core.dependency_injection import DependencyInjector
+from vulture.core.config_manager import ConfigManager
+from vulture.core.plugin_system import PluginSystem, PluginMetadata
+from vulture.core.security_policy import SecurityPolicy, RBAC
 
 __all__ = [
-    'FrameworkRegistry',
-    'DependencyInjector',
-    'ConfigurationManager',
-    'PluginSystem',
-    'SecurityPolicy',
+    "FrameworkRegistry",
+    "DependencyInjector",
+    "ConfigManager",
+    "PluginSystem",
+    "PluginMetadata",
+    "SecurityPolicy",
+    "RBAC",
 ]
