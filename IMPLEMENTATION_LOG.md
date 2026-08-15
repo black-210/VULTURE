@@ -1,70 +1,56 @@
 # IMPLEMENTATION_LOG.md
 
-# VULTURE Implementation Progress & Feature Log
+# VULTURE Implementation Progress & Feature Log (Updated)
 
 - Branch: implementation/complete-build
-- Version: 0.1.0
+- Version: 0.1.1
 - Generated: 2026-08-15
 
-## Summary
+## Summary of recent additions
 
-This commit adds foundational modules and an English implementation log to the
-VULTURE project. No existing files or directories were removed. The added
-modules are pragmatic, minimal implementations intended to be production-ready
-starting points for the larger features described in the full project plan.
+This commit adds lightweight, functional skeleton modules for many research
+frameworks across the VULTURE project. The goal is to provide concrete,
+importable entry points so the repository is usable immediately and can be
+iteratively extended into full-featured implementations.
 
-## Added modules (new files)
+All changes are additive-only and no existing files or folders were removed.
 
-- src/vulture/core/framework_registry.py
-  - Thread-safe registry for components and plugins. Simple API: register/get/list.
+## New skeleton modules added
 
-- src/vulture/core/dependency_injection.py
-  - Lightweight DI container supporting singleton and transient lifetimes.
+- spectrum_intelligence/core.py — SpectrumAnalyzer (numpy FFT-based)
+- protocols_framework/core.py — ProtocolAnalyzer (field segmentation)
+- wireless_research/core.py — WirelessResearch utilities (FSPL, conversions)
+- dsp_lab/core.py — DSPBlock, Flowgraph primitives
+- physics_lab/core.py — frequency/wavelength, thermal noise
+- mathematics_lab/core.py — vector normalization helper
+- scientific_computing/core.py — chunked iterator helper
+- computer_vision/core.py �� image loader stub
+- audio_intelligence/core.py — RMS audio feature
+- cybersecurity_research/core.py — log parsing helper
+- digital_forensics/core.py — file metadata helper
+- network_analysis/core.py — pcap placeholder
+- medical_research/core.py — simple ECG QRS detector
+- bioinformatics/core.py — FASTA parser
+- simulation/core.py — sine-wave simulator
+- dataset_intelligence/core.py — schema detection
+- experiment_framework/core.py — ExperimentManager scaffold
+- automation_framework/core.py — WorkflowEngine scaffold
+- visualization_advanced/core.py — spectrum image helper
 
-- src/vulture/rf_intelligence/fft_analyzer.py
-  - FFT analyzer with windowing and zero-padding helpers using numpy.
+## Notes & Next steps
 
-- src/vulture/rf_intelligence/psd.py
-  - PSD analyzer with scipy.signal.welch wrapper (numpy fallback provided).
+- These modules are intentionally lightweight and dependency-minimal. Optional
+  packages such as scipy, scikit-learn, PIL/OpenCV may be used in full
+  implementations; fallbacks were preferred where appropriate so the code is
+  importable and useful in minimal environments.
 
-- src/vulture/sdr_iq_framework/hardware_abstraction.py
-  - HardwareAbstraction stub to centralize SDR device integration points.
+- If you want full production implementations for any subset of frameworks
+  (e.g., full Computer Vision integration, GPU-accelerated DSP), tell me which
+  ones to prioritize and I will expand them into complete modules with tests.
 
-- src/vulture/signal_processing/filters.py
-  - FIR design and application helpers (scipy fallback optional).
-
-- src/vulture/ml_framework/model_trainer.py
-  - Thin wrapper around scikit-learn's RandomForestClassifier with simple
-    fallback behavior when sklearn is not available.
-
-## Rationale & Notes
-
-- All additions are strictly additive: no deletions or modifications of
-  unrelated files. The GUI file previously added remains unchanged.
-
-- Where optional dependencies are used (scipy, sklearn) the code falls back to
-  pure-numpy implementations or lightweight behavior so the repository can be
-  imported and basic functionality exercised in minimal environments.
-
-- Each module includes docstrings and a concise, testable surface area.
-
-## Next steps
-
-- Wire the GUI and CLI to the concrete implementations (file dialogs, device
-  selection). The GUI already contains worker threading support and can call
-  into these modules safely.
-
-- Add unit tests that exercise the new modules (FFT, PSD, Filters, ModelTrainer,
-  DI and registry). I can prepare pytest tests in a follow-up commit if you
-  would like.
-
-## QA
-
-- Verify imports: numpy present in CI. scipy and sklearn are optional but
-  recommended for full feature coverage.
-
+- I can also add pytest tests for these new modules in a follow-up commit.
 
 ---
 
-*Prepared by GitHub Copilot on user request. Additions are additive-only and
-intended to be safe to merge into implementation/complete-build.*
+*Prepared by GitHub Copilot at the user's request. All changes are additive and
+intended to provide real, testable starting points for further development.*
