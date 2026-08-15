@@ -1,8 +1,17 @@
-"""Signal Processing Framework - Filters, windowing, and DSP operations."""
-from .filters import FIRFilter, IIRFilter
-from .windowing import WindowingFunctions
-from .correlation import Correlation
-from .matched_filter import MatchedFilter
-from .synchronization import Synchronization
-from .gpu_acceleration import GPUAcceleration
-__all__ = ['FIRFilter', 'IIRFilter', 'WindowingFunctions', 'Correlation', 'MatchedFilter', 'Synchronization', 'GPUAcceleration']
+"""Signal Processing: Filters, windowing, correlation, matched filtering, synchronization, GPU."""
+
+from vulture.signal_processing.filters import Filters
+from vulture.signal_processing.windowing import WindowManager
+from vulture.signal_processing.correlation import CorrelationEngine
+from vulture.signal_processing.matched_filter import MatchedFilter
+from vulture.signal_processing.synchronization import Synchronization
+from vulture.signal_processing.gpu_acceleration import GPUAcceleration
+
+__all__ = [
+    "Filters",
+    "WindowManager",
+    "CorrelationEngine",
+    "MatchedFilter",
+    "Synchronization",
+    "GPUAcceleration",
+]

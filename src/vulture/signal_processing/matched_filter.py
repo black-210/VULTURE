@@ -1,18 +1,66 @@
-"""Matched filter for signal detection."""
+"""Matched filtering with PFA threshold calculation."""
+
 import numpy as np
-from scipy import signal
+from scipy import signal, stats
+from typing import Tuple
 import logging
+
 logger = logging.getLogger(__name__)
+
+
 class MatchedFilter:
-    def __init__(self, template):
-        self.template = template
-        self.filter_coeffs = np.flip(np.conj(template))
-    def apply(self, data):
-        output = np.convolve(data, self.filter_coeffs, mode='same')
-        return output
-    def get_detection_threshold(self, data, pfa=1e-4):
-        noise_power = np.var(data)
-        template_power = np.sum(np.abs(self.template)**2)
-        snr_threshold = -2 * np.log(pfa)
-        threshold = np.sqrt(snr_threshold * noise_power * template_power)
+    """Optimal matched filtering."""
+
+    @staticmethod
+    def filter(data: np.ndarray, template: np.ndarray, 
+               normalize: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+        """Apply matched filter.
+        
+        Args:
+            data: Input signal
+            template: Template/signal to match
+            normalize: Normalize by signal energy
+            
+        Returns:
+            (filter_output, normalized_output)
+        """
+        output = signal.correlate(data, template, mode='same')
+        
+        if normalize:
+            template_energy = np.sum(template ** 2)
+            normalized = output / np.sqrt(template_energy)
+        else:
+            normalized = output
+        
+        return output, normalized
+
+    @staticmethod
+    def compute_threshold(noise_psd: float, target_pfa: float, 
+                         signal_length: int) -> float:
+        """Compute Neyman-Pearson threshold.
+        
+        Args:
+            noise_psd: Noise power spectral density
+            target_pfa: Probability of false alarm
+            signal_length: Signal length
+            
+        Returns:
+            Detection threshold
+        """
+        # For Gaussian noise: threshold = noise_std * sqrt(2 * ln(1/pfa))
+        noise_std = np.sqrt(noise_psd)
+        threshold = noise_std * np.sqrt(2 * np.log(1 / target_pfa))
         return threshold
+
+    @staticmethod
+    def detect(output: np.ndarray, threshold: float) -> np.ndarray:
+        """Apply threshold to matched filter output.
+        
+        Args:
+            output: Matched filter output
+            threshold: Detection threshold
+            
+        Returns:
+            Binary detection array
+        """
+        return (np.abs(output) > threshold).astype(int)
