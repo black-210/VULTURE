@@ -1,8 +1,17 @@
-"""ML Framework - Machine learning and deep learning tools."""
-from .preprocessing import Preprocessing
-from .feature_engineering import FeatureEngineering
-from .model_trainer import ModelTrainer
-from .evaluation import ModelEvaluation
-from .model_hub import ModelHub
-from .gpu_training import GPUTraining
-__all__ = ['Preprocessing', 'FeatureEngineering', 'ModelTrainer', 'ModelEvaluation', 'ModelHub', 'GPUTraining']
+"""ML Framework: Preprocessing, Features, Training, Evaluation, Model Hub, GPU."""
+
+from vulture.ml_framework.preprocessing import Preprocessing
+from vulture.ml_framework.feature_engineering import FeatureEngineering
+from vulture.ml_framework.model_trainer import ModelTrainer
+from vulture.ml_framework.evaluation import Evaluation
+from vulture.ml_framework.model_hub import ModelHub
+from vulture.ml_framework.gpu_training import GPUTrainer
+
+__all__ = [
+    "Preprocessing",
+    "FeatureEngineering",
+    "ModelTrainer",
+    "Evaluation",
+    "ModelHub",
+    "GPUTrainer",
+]
