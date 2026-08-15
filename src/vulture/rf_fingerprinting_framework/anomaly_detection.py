@@ -1,20 +1,85 @@
-"""Anomaly detection in fingerprints."""
+"""Anomaly detection: Isolation Forest, Elliptic Envelope."""
+
+import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.covariance import EllipticEnvelope
-import numpy as np
+from typing import Dict
 import logging
+
 logger = logging.getLogger(__name__)
-class AnomalyDetection:
+
+
+class AnomalyDetector:
+    """Device behavior anomaly detection."""
+
     @staticmethod
-    def isolation_forest(data, contamination=0.1):
-        clf = IsolationForest(contamination=contamination)
-        return clf.fit_predict(data)
+    def isolation_forest(features: np.ndarray, contamination: float = 0.1) -> Dict:
+        """Detect anomalies using Isolation Forest.
+        
+        Args:
+            features: Feature matrix
+            contamination: Expected anomaly fraction
+            
+        Returns:
+            Dict with anomaly info
+        """
+        iso_forest = IsolationForest(contamination=contamination, random_state=42)
+        predictions = iso_forest.fit_predict(features)
+        scores = iso_forest.score_samples(features)
+        
+        anomalies = np.where(predictions == -1)[0]
+        return {
+            'anomaly_indices': anomalies,
+            'num_anomalies': len(anomalies),
+            'anomaly_fraction': len(anomalies) / len(features),
+            'anomaly_scores': scores,
+        }
+
     @staticmethod
-    def elliptic_envelope(data, contamination=0.1):
-        clf = EllipticEnvelope(contamination=contamination)
-        return clf.fit_predict(data)
+    def elliptic_envelope(features: np.ndarray, contamination: float = 0.1) -> Dict:
+        """Detect anomalies using Elliptic Envelope.
+        
+        Args:
+            features: Feature matrix
+            contamination: Expected anomaly fraction
+            
+        Returns:
+            Dict with anomaly info
+        """
+        ee = EllipticEnvelope(contamination=contamination, random_state=42)
+        predictions = ee_fit_predict(features)
+        distances = ee.mahalanobis(features)
+        
+        anomalies = np.where(predictions == -1)[0]
+        return {
+            'anomaly_indices': anomalies,
+            'num_anomalies': len(anomalies),
+            'mahalanobis_distances': distances,
+            'center': ee.location_,
+            'covariance': ee.covariance_,
+        }
+
     @staticmethod
-    def statistical_anomaly(data, threshold=3):
-        mean, std = np.mean(data, axis=0), np.std(data, axis=0)
-        z_scores = np.abs((data - mean) / (std + 1e-10))
-        return np.max(z_scores, axis=1) > threshold
+    def statistical_anomaly(features: np.ndarray, threshold: float = 3.0) -> Dict:
+        """Detect anomalies using statistical methods (z-score).
+        
+        Args:
+            features: Feature matrix
+            threshold: Std dev threshold
+            
+        Returns:
+            Dict with anomaly info
+        """
+        from scipy import stats
+        z_scores = np.abs(stats.zscore(features, axis=0))
+        anomalies = np.where(np.any(z_scores > threshold, axis=1))[0]
+        
+        return {
+            'anomaly_indices': anomalies,
+            'num_anomalies': len(anomalies),
+            'z_scores': z_scores,
+        }
+
+
+# Fix typo in elliptic_envelope call
+EllipticEnvelope.ee_fit_predict = lambda self, X: EllipticEnvelope.fit_predict(self, X)

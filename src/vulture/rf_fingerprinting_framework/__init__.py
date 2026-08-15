@@ -1,7 +1,15 @@
-"""RF Fingerprinting Framework - Device identification and classification."""
-from .feature_extraction import FeatureExtraction
-from .statistical_analysis import StatisticalAnalysis
-from .clustering import Clustering
-from .classification import Classification
-from .anomaly_detection import AnomalyDetection
-__all__ = ['FeatureExtraction', 'StatisticalAnalysis', 'Clustering', 'Classification', 'AnomalyDetection']
+"""RF Fingerprinting: Feature extraction, classification, anomaly detection."""
+
+from vulture.rf_fingerprinting_framework.feature_extraction import FeatureExtractor
+from vulture.rf_fingerprinting_framework.statistical_analysis import StatisticalAnalyzer
+from vulture.rf_fingerprinting_framework.clustering import ClusteringEngine
+from vulture.rf_fingerprinting_framework.classification import DeviceClassifier
+from vulture.rf_fingerprinting_framework.anomaly_detection import AnomalyDetector
+
+__all__ = [
+    "FeatureExtractor",
+    "StatisticalAnalyzer",
+    "ClusteringEngine",
+    "DeviceClassifier",
+    "AnomalyDetector",
+]
