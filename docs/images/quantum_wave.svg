@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="140" viewBox="0 0 300 140">
+  <rect width="300" height="140" fill="#0b1320" rx="8"/>
+  <g fill="#ffffff" font-family="Arial">
+    <text x="18" y="36" font-size="16" font-weight="700">Quantum Signal Processing</text>
+    <path d="M40 80 C 70 20, 130 120, 160 60 C 190 0, 240 120, 280 60" stroke="#7c4dff" stroke-width="3" fill="none"/>
+    <text x="18" y="118" font-size="10" opacity="0.85">QFT • Variational Circuits • Hybrid ML</text>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+  <rect width="900" height="360" fill="#ffffff"/>
+  <g font-family="Arial" fill="#0b1320">
+    <text x="32" y="36" font-size="18" font-weight="700">RF‑DNA Architecture (simplified)</text>
+    <rect x="40" y="56" width="220" height="60" rx="6" fill="#f1f5f9" stroke="#0b1320" />
+    <text x="60" y="88" font-size="12">Server (FastAPI + WS)</text>
+    <rect x="340" y="56" width="220" height="60" rx="6" fill="#f1f5f9" stroke="#0b1320" />
+    <text x="360" y="88" font-size="12">Fingerprint DB (Encrypted)</text>
+    <rect x="640" y="56" width="220" height="60" rx="6" fill="#f1f5f9" stroke="#0b1320" />
+    <text x="660" y="88" font-size="12">Workers / ANN (HNSW / FAISS)</text>
+
+    <line x1="160" y1="116" x2="160" y2="156" stroke="#0b1320" stroke-width="1" />
+    <line x1="460" y1="116" x2="460" y2="156" stroke="#0b1320" stroke-width="1" />
+    <line x1="760" y1="116" x2="760" y2="156" stroke="#0b1320" stroke-width="1" />
+
+    <rect x="40" y="160" width="260" height="80" rx="6" fill="#e8f0fe" stroke="#1e88e5" />
+    <text x="60" y="192" font-size="12">Clients: GUI (PyQt6), CLI, Mobile, SDKs</text>
+
+    <rect x="340" y="160" width="220" height="80" rx="6" fill="#fff3e0" stroke="#fb8c00" />
+    <text x="360" y="192" font-size="12">Remote SDRs / SoapyRemote / Cloud IQ providers</text>
+
+    <rect x="640" y="160" width="220" height="80" rx="6" fill="#e8f5e9" stroke="#43a047" />
+    <text x="660" y="192" font-size="12">Storage: IQ archives (S3), Audit Logs, Metrics</text>
+
+    <text x="32" y="280" font-size="12" opacity="0.8">Streams: WebSocket (Protobuf/MsgPack) with optional HMAC signatures and adaptive chunking.</text>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="200" viewBox="0 0 1200 200">
+  <rect width="1200" height="200" fill="#0b1320"/>
+  <g fill="#ffffff" font-family="Arial, Helvetica, sans-serif">
+    <text x="40" y="72" font-size="38" font-weight="700">🦅 VULTURE</text>
+    <text x="40" y="112" font-size="18" opacity="0.85">Autonomous Intelligence & Research Platform — RF, SDR, AI, ML, Visualization</text>
+  </g>
+  <g transform="translate(920,20)">
+    <rect x="0" y="0" width="260" height="160" rx="8" fill="#14263b" stroke="#1e88e5" stroke-width="2" />
+    <text x="20" y="42" fill="#1e88e5" font-size="14" font-family="Arial">v3.0.0</text>
+    <text x="20" y="72" fill="#fff" font-size="12" font-family="Arial">RF‑DNA Distributed Architecture</text>
+  </g>
+</svg>
