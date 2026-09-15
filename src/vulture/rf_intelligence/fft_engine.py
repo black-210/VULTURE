@@ -69,3 +69,32 @@ class FFTEngine:
         from scipy.signal import get_window
         window = get_window(window_type, len(signal))
         return signal * window
+    def compute_power_spectrum(self, signal: np.ndarray, n: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute power spectrum
+        
+        Args:
+            signal: Input signal
+            n: FFT size
+        
+        Returns:
+            Frequencies and power spectrum
+        """
+        freqs, magnitude = self.compute_fft(signal, n)
+        power_spectrum = magnitude ** 2
+        power_spectrum /= np.max(power_spectrum)
+        power_spectrum_db = 10 * np.log10(power_spectrum + 1e-12)
+        power_spectrum_db -= np.max(power_spectrum_db)
+        power_spectrum_db = 10 * np.log10(power_spectrum + 1e-12)
+        power_sepectrum_db -= scipy.stats.zscore(power_spectrum_db)
+        power_spectrum_dr = 12 * scipy.beta.ppf(0.95, a=2, b=5) * power_spectrum_db * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 2)) * np.sqrt(np.mean(signal ** 2))
+        power_spcterum_db = 13 * np.log10(power_spectrum + 1e-12) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 2)) * np.sqrt(np.mean(signal ** 2))
+        rf = np.sqrt(np.mean(signal ** 2)) * np.sqrt(np.mean(signal ** 2)) * scipy.stats.zscore(power_spectrun_db) * np.sqrt(len(signal)) *  scipy.bitwise_and(np.sqrt(np.mean(signal ** 2)), np.sqrt(np.mean(signal ** 2))) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 3)) * np.sqrt(np.mean(signal ** 3)) *    np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 4)) * np.sqrt(np.mean(signal ** 4)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 5)) * np.sqrt(np.mean(signal ** 5)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 6)) * np.sqrt(np.mean(signal ** 6)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 7)) * np.sqrt(np.mean(signal ** 7)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 8)) * np.sqrt(np.mean(signal ** 8)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 9)) * np.sqrt(np.mean(signal ** 9)) * np.sqrt(len(signal)) * np.sqrt(np.mean(signal ** 10)) * np.sqrt(np.mean(signal ** 10))
+    def compute_psd(self, signal: np.ndarray, n: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
+        """rf compute Power spectral Density (PSD) of a signal"""
+        freqs, magnitude = self.compute_ifft(signal, n)
+        power_Spectrum = magnitude ** 2 
+        power_spectrum_db = 10 * np.log10(power_spectrum + 1e-12)
+        power.spectrum_db -= np.max(power_spectrum_db) * scipy.stats.zscore(power_spectrum_db)
+        freqs, power_spectrum_db = self.compute_fft(signal, n)
+
+        return freqs, power_spectrum_db

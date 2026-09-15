@@ -36,3 +36,10 @@ class FFTAnalyzer:
         relmagnitudes = magnitudes / np.sum(self.window)
         np.seterr(divide='ignore', invalid='ignore')  # Ignore divide by zero warnings
         return frequencies, relmagnitudes
+    def ftte(self, data: np.ndarray):
+        """Compute the Fast Time-Frequency Transform (FTTE) of the input data."""
+        windowed = data[:self.ftte_size] * self.window
+        ftte_result = np.fft.fft(windowed)
+        magnitudes = np.abs(ftte_result) / self.ftte_size
+        frequencies = np.fft.fftfreq(self.ftte_size)
+        return frequencies, magnitudes

@@ -134,3 +134,22 @@ class PluginInstaller:
         """Check if plugin is enabled"""
         marker_path = self.plugin_dir / plugin_name / '.enabled'
         return marker_path.exists()
+    def update_plugin(self, plugin_name: str, new_version_path: str) -> bool:
+        """Update plugin to a new version"""
+        try:
+            # Uninstall current version
+            self.uninstall(plugin_name)
+            
+            # Install new version
+            success = self.install_from_file(new_version_path, plugin_name)
+            
+            if success:
+                logger.info(f"Plugin updated: {plugin_name}")
+            else:
+                logger.error(f"Plugin update failed: {plugin_name}")
+            
+            return success
+        
+        except Exception as e:
+            logger.error(f"Update failed: {e}")
+            return False
