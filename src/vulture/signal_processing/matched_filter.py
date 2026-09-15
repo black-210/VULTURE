@@ -16,3 +16,24 @@ class MatchedFilter:
         snr_threshold = -2 * np.log(pfa)
         threshold = np.sqrt(snr_threshold * noise_power * template_power)
         return threshold
+
+    def detect_signal(self, data, threshold):
+        output = self.apply(data)
+        detections = np.where(output > threshold)[0]
+        return detections
+    def plot_matched_filter_response(self):
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(self.filter_coeffs)
+        plt.title("Matched Filter Coefficients")
+        plt.xlabel("Sample Index")
+        plt.ylabel("Amplitude")
+        plt.grid()
+        plt.show()
+        plt.figure()
+        plt.plot(np.abs(self.filter_coeffs))
+        plt.title("Matched Filter Magnitude Response")
+        plt.xlabel("Sample Index")
+        plt.ylabel("Magnitude")
+        plt.grid()
+        plt.show()

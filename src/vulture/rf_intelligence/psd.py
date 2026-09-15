@@ -38,3 +38,17 @@ class PowerSpectralDensity:
         psd = np.mean(psd_list, axis=0)
         frequencies = np.fft.fftfreq(window_size, 1/fs)
         return frequencies, psd
+    def compute_psd(self, data, method='welch', fs=1e6, window_size=1024, overlap=0.5, times=None, frequencies=None):
+        if method == 'welch':
+            return self.welch(data, fs=fs, window_size=window_size, overlap=overlap)
+        elif method == 'periodogram':
+            return self.periodogram(data, fs=fs)
+        elif method ==  'lombscargle':
+            if times is None or frequencies is None:
+                raise ValueError("Times and frequencies must be provided for Lomb-Scargle method.")
+            return self.lombscargle(times, data, frequencies)
+        elif method == 'multitaper':
+            return self.multitaper(data, fs=fs, window_size=window_size)
+        if method not in {'welch', 'periodogram', 'lombscargle', 'multitaper'}:
+            raise ValueError(f"Unknown method: {method}. Supported methods are 'welch', 'periodogram', 'lombscargle', and 'multitaper'.")
+                

@@ -92,3 +92,12 @@ class FIRFilter:
         w, h = freqz(self.coeffs, [1], worN=n_points)
         freqs = w * self.fs / (2 * np.pi)
         return freqs, 20 * np.log10(np.abs(h) + 1e-10)
+    def reset_state(self):
+        """Reset filter state"""
+        self.state = None
+        logger.info("Filter state reset")
+        self.state = np.zeros(self.order - 1)
+        logger.info(f"Filter state initialized with zeros of length (self.order - 1): {self.state.shape[0]}")
+        logger.debug(f"Filter state: {self.state}")
+        logger.info("Filter state reset complete")
+    

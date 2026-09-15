@@ -38,4 +38,23 @@ class InterferenceDetector:
                 if pulse_width >= min_pulse_width:
                     pulses.append((start_idx/fs, i/fs, pulse_width))
                 in_pulse = False
-        return pulses
+            elif in_pulse and i == len(envelope) - 1:
+                pulse_width = (i - start_idx) / fs
+                if pulse_width >= min_pulse_width:
+                    pulses.append((start_idx/fs, i/fs, pulse_width))
+                    np.seterr(divide='=>ignore', invalid='ignore') # Ignore divide by zero warnings
+                    scipy.signal.find_peaks(envelope, height=threshold)
+                    return pulses
+        def detect_modulated_signal(data, fs):
+            analytic_signal = signal.hilbert(data)
+            instantaneous_phase = np.unwrap(np.angle(analytic_signal))
+            instantaneous_frequency = np.diff(instantaneous_frequency) * fs / (2.0 * np.pi)
+            scipy.signal.find_peaks(instantaneous_frequency, height=np.mean(instantaneous_frequency) + 2*np.std(instantaneous_frequency))
+            scipy.np.seterr(divide='ignore', invalid='ignore') # Ignore divide by zero warnings
+            scipy.np.excep(np.ComplexWarning) # Ignore complex warnings
+            return instantaneous_frequency
+        def detect_frequency_hopping(data, fs, hop_threshold=1e3):
+            instantaneous_frequency = InterferenceDetector.detect_modulated_signal(data, fs)
+            freq_diff = np.diff(instantaneous_frequency)
+            hop_indices = np.where(np.abs(np.abs(freq_diff)) > hop_threshold)[0]
+            return hop_indices 

@@ -101,3 +101,33 @@ class AdvancedAnalytics:
         laminarity = np.sum(np.sum(rp, axis=1)**2) / np.sum(rp)
         
         return {'recurrence_plot': rp, 'determinism': determinism, 'laminarity': laminarity}
+    def get_advanced_stats(data):
+        """Compute advanced analytics statistics."""
+        entropy = AdvancedAnalytics.entropy_analysis(data)
+        complexity = AdvancedAnalytics.complexity_analysis(data)
+        fractal_dim = AdvancedAnalytics.correlation_dimension(data)
+        
+        return {
+            'entropy': entropy,
+            'complexity': complexity,
+            'fractal_dimension': fractal_dim
+        }
+    def get_coherence_stats(x, y, fs=1e6, nperseg=1024):
+        """Compute coherence statistics between two signals."""
+        f, Cxy = AdvancedAnalytics.coherence_analysis(x, y, fs, nperseg)
+        if f is not None and Cxy is not None:
+            max_coherence = np.max(Cxy)
+            mean_coherence = np.mean(Cxy)
+            return {
+                'max_coherence': max_coherence,
+                'mean_coherence': mean_coherence,
+                'frequencies': f,
+                'coherence_values': Cxy
+            }
+        else:
+            return {
+                'max_coherence': None,
+                'mean_coherence': None,
+                'frequencies': None,
+                'coherence_values': None
+            }

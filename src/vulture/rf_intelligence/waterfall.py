@@ -31,4 +31,7 @@ class WaterfallDisplay:
             'mean_power': np.mean(data),
             'max_power': np.max(data),
             'min_power': np.min(data),
+            'strongest_signal': np.unravel_index(np.argmax(data), data.shape),
+            'weakest_signal': np.unravel_index(np.argmin(data), data.shape)
+            
         }

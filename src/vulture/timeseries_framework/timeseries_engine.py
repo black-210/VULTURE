@@ -77,3 +77,36 @@ class TimeSeriesEngine:
             if len(matches) > 1:
                 patterns.append({'position': i, 'matches': matches})
         return patterns
+    def get_time_series_stats(self):
+        """Compute comprehensive time series statistics."""
+        filled = np.abs(self.buffer[:self.position])
+        if len(filled) == 0:
+            return {}
+        skewness = stats.skew(filled)
+        kurtosis = stats.kurtosis(filled)
+        autocorr = np.correlate(filled, filled, mode='full')
+        autocorr = autocorr[autocorr.size // 2:]
+        return {
+            'min': self.stats['min'],
+            'max': self.stats['max'],
+            'mean': self.stats['mean'],
+            'std': self.stats['std'],
+            'skewness': skewness,
+            'kurtosis': kurtosis,
+            'autocorrelation': autocorr
+        }
+    def get_multi_resolution_stats(self, levels=5):
+        """Compute statistics for multi-resolution analysis."""
+        resolutions = self.multi_resolution_analysis(levels)
+        stats_list = []
+        for level, res in enumerate(resolutions, start=1):
+            if len(res) == 0:
+                continue
+            stats_list.append({
+                'level': level,
+                'min': np.min(np.abs(res)),
+                'max': np.max(np.abs(res)),
+                'mean': np.mean(np.abs(res)),
+                'std': np.std(np.abs(res))
+            })
+        return stats_list

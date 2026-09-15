@@ -57,3 +57,16 @@ class NoiseEstimator:
         
         cnr_db = 10 * np.log10(carrier_power / noise_power)
         return cnr_db
+    def estimate_noise_statistics(self, psd: np.ndarray) -> Dict[str, float]:
+        """Estimate noise statistics
+
+        Args:
+            psd: Power spectral density
+            Returns:
+            Dictionary with mean, median, and std of noise floor
+            """
+        noise_floor = self.estimate_cnr(psd)
+        mean_noise = np.mean(noise_floor)
+        median_noise = np.median(noise_floor)
+        std_noise = np.std(noise_floor)
+        return {'mean': mean_noise, 'median': median_noise, 'std': std_noise}

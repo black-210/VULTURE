@@ -39,3 +39,16 @@ class SignalOccupancy:
         envelope = np.abs(data)
         occupied_samples = np.sum(envelope > threshold)
         return occupied_samples / len(data)
+    def compute_signal_occupancy(self, data, fs=1e6, method='welch', window_size=1024, overlap=0.5, threshold=None, times=None, frequencies=None):
+        from .psd import PowerSpectralDensity
+        psd_computer = PowerSpectralDensity()
+        freqs, psd = psd_computer.compute_psd(data, method=method, fs=fs, window_size=window_size, overlap=overlap, times=times, frequencies=frequencies)
+        occupancy = self.compute_occupancy(psd, threshold)
+        return freqs, psd, occupancy
+        if method not in {'welch', 'periodogram', 'lombscargle', 'multitaper'}:
+            raise ValueError(f"Unknown method: {method}. Supported methods are 'welch', 'periodogram', 'lombscargle', and 'multitaper'.")
+        elif method == 'lombscargle':
+            if times is None or frequencies is None:
+                raise ValueError("Times and frequencies must be provided for Lomb-Scargle method.")
+            freqs, psd = psd_computer.lombscargle(times, data, frequencies)
+    

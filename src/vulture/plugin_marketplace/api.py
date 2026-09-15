@@ -105,3 +105,6 @@ class MarketplaceAPI:
             'plugin_name': plugin_name,
             'rating': rating
         }
+    def get_plugin_reviews(self, plugin_name: str) -> List[Dict]:
+        """Get reviews for a plugin"""
+        return self.registry.get_reviews(plugin_name)

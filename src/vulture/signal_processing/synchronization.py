@@ -19,3 +19,18 @@ class Synchronization:
         t = np.arange(len(data))
         carrier = np.exp(1j * 2 * np.pi * estimated_freq * t)
         return data * np.conj(carrier)
+    def get_synchronization_stats(data, pattern):
+        """Compute synchronization statistics."""
+        peaks = Synchronization.find_sync_pattern(data, pattern)
+        return {
+            'num_sync_peaks': len(peaks),
+            'sync_peak_positions': peaks
+        }
+    def get_timing_stats(data, samples_per_symbol):
+        """Compute timing recovery statistics."""
+        symbol_stream = Synchronization.symbol_timing_recovery(data, samples_per_symbol)
+        return {
+            'num_symbols' : len(symbol_stream),
+            'symbol_stream' : symbol_stream
+            
+        }

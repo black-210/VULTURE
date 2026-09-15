@@ -19,3 +19,15 @@ class Correlation:
     @staticmethod
     def cross_correlation_fast(x, y):
         return signal.correlate(x, y, mode='same')
+    def get_correlation_stats(x, y):
+        """Compute correlation statistics between two signals."""
+        corr = Correlation.cross_correlation(x, y)
+        max_corr = np.max(corr)
+        min_corr = np.min(corr)
+        mean_corr = np.mean(corr)
+        return {
+            'max_correlation': max_corr,
+            'min_correlation': min_corr,
+            'mean_correlation': mean_corr
+        }
+    

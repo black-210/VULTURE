@@ -52,3 +52,49 @@ class PSDAnalyzer:
         """
         mask = (freqs >= freq_start) & (freqs <= freq_stop)
         return np.sum(psd[mask])
+    def analyze_signal(self, signal: np.ndarray, method: str = 'welch', nperseg: int = 1024) -> Tuple[np.ndarray, np.ndarray]:
+        """Analyze signal and compute PSD
+        
+        Args:
+            signal: Input signal
+            method: Method to compute PSD ('welch' or 'periodogram')
+            nperseg: Segment length for Welch method
+        
+        Returns:
+            Frequencies and PSD
+        """
+        if method == 'welch':
+            return self.compute_welch_psd(signal, nperseg)
+        elif method == 'periodogram':
+            return self.compute_periodogram(signal)
+        else:
+            logger.error(f"Unknown method {method}. Use 'welch' or 'periodogram'.")
+            raise ValueError(f"Unknown method {method}. Use 'welch' or 'periodogram'.")
+    def plot_psd(self, freqs: np.ndarray, psd: np.ndarray, title: str = 'Power Spectral Density'):
+        """Plot PSD
+        
+        Args:
+            freqs: Frequency array
+            psd: Power spectral density
+            title: Plot title
+            """
+        import matplotlib.pyplot as plt
+        
+        plt.figure(figsize=(10, 6))
+        plt.semilogy(freqs, psd)
+        plt.title(title)
+        plt.xlabel('Frequency [Hz]')
+        plt.ylabel('PSD [V**2/Hz]')
+        plt.grid()
+        plt.show()
+    def save_psd(self, freqs: np.ndarray, psd: np.ndarray, filename: str):
+        """Save PSD to file
+        
+        Args:
+            freqs: Frequency array
+            psd: Power spectral density
+            filename: Output filename
+        """
+        np.savez(filename, freqs=freqs, psd=psd)
+        np.savetxt(filename.replace('.npz', '.txt'), np.column_stack((freqs, psd)), header='Frequency [Hz]\tPSD [V**2/Hz]')
+        scipy.io.savemat(filename.removeprefix('.npz') + '.mat', {'freqs': freqs, 'psd': psd})

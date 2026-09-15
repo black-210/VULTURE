@@ -87,3 +87,31 @@ class IQReader:
             raise ValueError(f"Unsupported format: {suffix}")
         
         return data, metadata
+    def read_sigmf(self, filepath: str) -> Tuple[np.ndarray, Dict]:
+        """Read SigMF file
+        
+        Args:
+            filepath: Path to SigMF file
+        
+        Returns:
+            (IQ data, metadata)
+        """
+        import json
+        path = Path(filepath)
+        if path.suffix.lower() != '.sigmf':
+            raise ValueError("File must be a .sigmf file")
+        
+        with open(filepath, 'r') as f:
+            sigmf_metadata = json.load(f)
+        
+        data_path = path.with_suffix('.sigmf-data')
+        if not data_path.exists():
+            raise FileNotFoundError(f"Data file {data_path} not found")
+        
+        dtype = sigmf_metadata.get('global', {}).get('datatype', 'complex64')
+        sample_rate = sigmf_metadata.get('global', {}).get('sample_rate', 1e6)
+        
+        data, _ = self.read_binary(str(data_path), dtype=dtype, sample_rate=sample_rate)
+        
+        return data, sigmf_metadata
+        

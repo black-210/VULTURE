@@ -32,4 +32,7 @@ class FFTAnalyzer:
         fft_result = np.fft.rfft(windowed)
         magnitudes = np.abs(fft_result) / self.fft_size
         frequencies = np.fft.rfftfreq(self.fft_size)
-        return frequencies, magnitudes
+        # Note that rfft returns only the positive frequency terms, which is often useful for real-valued signals,
+        relmagnitudes = magnitudes / np.sum(self.window)
+        np.seterr(divide='ignore', invalid='ignore')  # Ignore divide by zero warnings
+        return frequencies, relmagnitudes

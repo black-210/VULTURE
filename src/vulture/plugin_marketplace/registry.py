@@ -194,3 +194,50 @@ class PluginRegistry:
         conn.close()
         
         return [dict(row) for row in rows]
+    def get_plugin_versions(self, plugin_name: str) -> List[Dict]:
+        """Get all versions of a plugin"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT id FROM plugins WHERE name = ?', (plugin_name,))
+        result = cursor.fetchone()
+        
+        if not result:
+            return []
+        
+        plugin_id = result[0]
+        
+        cursor.execute('SELECT * FROM versions WHERE plugin_id = ? ORDER BY release_date DESC', (plugin_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [dict(row) for row in rows]
+     
+    def add_plugin_version(self, plugin_name: str, version: str, release_notes: str = '', download_url: str = '', file_hash: str = '') -> bool:
+        """Add a new version for a plugin"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT id FROM plugins WHERE name = ?', (plugin_name,))
+            result = cursor.fetchone()
+            
+            if not result:
+                return False
+            
+            plugin_id = result[0]
+            
+            cursor.execute('''
+                INSERT INTO versions (plugin_id, version, release_notes, download_url, file_hash)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (plugin_id, version, release_notes, download_url, file_hash))
+            
+            conn.commit()
+            conn.close()
+            
+            logger.info(f"Added version {version} for plugin {plugin_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Error adding plugin version: {e}")
+            return False

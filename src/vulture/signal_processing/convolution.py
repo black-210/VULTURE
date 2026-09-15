@@ -57,3 +57,20 @@ class ConvolutionEngine:
         result = np.real(np.fft.ifft(wiener_filter * s_fft))
         
         return result
+    def get_convolution_stats(signal1: np.ndarray, signal2: np.ndarray) -> dict:
+        """Get statistics of the convolution result
+        
+        Args:
+            signal1: First signal
+            signal2: Second signal
+        
+        Returns:
+            Dictionary with mean, max, min, and length of the convolution result
+        """
+        conv_result = ConvolutionEngine.convolve_direct(signal1, signal2)
+        return {
+            'mean': np.mean(conv_result),
+            'max': np.max(conv_result),
+            'min': np.min(conv_result),
+            'length': len(conv_result)
+        }

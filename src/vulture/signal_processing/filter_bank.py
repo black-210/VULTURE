@@ -64,3 +64,9 @@ class FilterBank:
         outputs = self.apply(signal)
         powers = np.mean(np.abs(outputs) ** 2, axis=1)
         return powers
+    def reset_filter_states(self) -> None:
+        """Reset states of all filters in the filter bank"""
+        for fir in self.filters:
+            fir.reset_state()
+            if logger.isEnabledFor(logging.INFO):
+                logger.info(f"Filter state reassigned for filter with order {fir.order} and sample rate {fir.fs}. State length: {fir.state.shape[0]}")
