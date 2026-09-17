@@ -34,6 +34,7 @@ def info() -> None:
     click.echo("🦅 VULTURE")
     click.echo("Science: chemistry • physics • mathematics • RF")
     click.echo("Forensics: offline audit of supplied evidence only")
+    click.echo("RF-DNA: vulture rf-dna --help")
     click.echo("Interactive: vulture --interactive")
 
 
@@ -47,6 +48,7 @@ def status() -> None:
         "network": "disabled",
         "rf_transmit": "disabled",
         "analysis": "local-only",
+        "rf_dna_command": "vulture rf-dna",
     }
     click.echo(json.dumps(payload, indent=2, sort_keys=True))
 
@@ -76,6 +78,74 @@ def chemical_rf(args: tuple[str, ...]) -> None:
         click.echo(chemical_rf_cli.get_help(click.Context(chemical_rf_cli)))
         return
     chemical_rf_cli.main(list(args), standalone_mode=False)
+
+
+@cli.group("rf-dna")
+def rf_dna() -> None:
+    """Integrated receive-only RF-DNA simulation, analysis, and reporting commands."""
+
+
+def _run_rf_dna(args: tuple[str, ...]) -> None:
+    """Forward integrated commands to the existing RF-DNA Click group."""
+    from vulture.rf_dna.cli import cli as rf_dna_cli
+    rf_dna_cli.main(list(args), standalone_mode=False)
+
+
+@rf_dna.command("status")
+def rf_dna_status() -> None:
+    """Show RF-DNA capabilities through the main VULTURE command."""
+    _run_rf_dna(("status",))
+
+
+@rf_dna.command("simulate")
+@click.option("--profile", default="noise", show_default=True)
+@click.option("--duration", type=float, default=1.0, show_default=True)
+@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
+@click.option("--seed", type=int, default=7, show_default=True)
+@click.option("--output", type=click.Path(dir_okay=False), required=True)
+def rf_dna_simulate(profile: str, duration: float, sample_rate: float, seed: int, output: str) -> None:
+    """Generate a deterministic local IQ fixture without hardware or network access."""
+    _run_rf_dna(("simulate", "--profile", profile, "--duration", str(duration), "--sample-rate", str(sample_rate), "--seed", str(seed), "--output", output))
+
+
+@rf_dna.command("fingerprint")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--label", default="unlabelled", show_default=True)
+def rf_dna_fingerprint(input_path: str, label: str) -> None:
+    """Extract a descriptive fingerprint from a local NPZ capture."""
+    _run_rf_dna(("fingerprint", "--input", input_path, "--label", label))
+
+
+@rf_dna.command("dashboard")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--label", default="dashboard-capture", show_default=True)
+def rf_dna_dashboard(input_path: str, label: str) -> None:
+    """Create a dashboard and provenance summary from a local capture."""
+    _run_rf_dna(("dashboard", "--input", input_path, "--label", label))
+
+
+@rf_dna.command("report")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--label", default="capture-report", show_default=True)
+def rf_dna_report(input_path: str, label: str) -> None:
+    """Create a machine-readable local RF-DNA report."""
+    _run_rf_dna(("report", "--input", input_path, "--label", label))
+
+
+@rf_dna.command("quantum")
+@click.option("--profile", default="multi-tone", show_default=True)
+@click.option("--duration", type=float, default=2.0, show_default=True)
+@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
+@click.option("--seed", type=int, default=7, show_default=True)
+def rf_dna_quantum(profile: str, duration: float, sample_rate: float, seed: int) -> None:
+    """Run a local quantum-inspired experiment with a classical baseline."""
+    _run_rf_dna(("quantum", "--profile", profile, "--duration", str(duration), "--sample-rate", str(sample_rate), "--seed", str(seed)))
+
+
+@rf_dna.command("backends")
+def rf_dna_backends() -> None:
+    """Report optional receive backends without probing hardware or networks."""
+    _run_rf_dna(("backends",))
 
 
 @cli.group("forensic")
@@ -152,7 +222,7 @@ class InteractiveShell:
         click.echo("══════════════════════════════════════════════════════════")
         click.echo("🦅 VULTURE — Offline Scientific Intelligence Platform")
         click.echo("chemistry • physics • mathematics • RF • forensic audit")
-        click.echo("Type: help | status | forensic physics | exit")
+        click.echo("Type: help | status | rf-dna status | forensic physics | exit")
         click.echo("══════════════════════════════════════════════════════════")
 
     def run(self) -> None:
@@ -181,10 +251,17 @@ class InteractiveShell:
             click.echo("  status")
             click.echo("  rf-wavelength --frequency-hz 1e9")
             click.echo("  rf-path-loss --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("  rf-dna status")
+            click.echo("  rf-dna simulate --profile multi-tone --duration 2 --sample-rate 1000000 --output capture.npz")
+            click.echo("  rf-dna fingerprint --input capture.npz --label lab-device-01")
+            click.echo("  rf-dna dashboard --input capture.npz")
+            click.echo("  rf-dna report --input capture.npz")
+            click.echo("  rf-dna quantum --profile multi-tone")
+            click.echo("  rf-dna backends")
             click.echo("  chemical-rf nmr --nucleus 1H --field-t 7")
             click.echo("  forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("  forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]' ")
-            click.echo("  forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]' ")
+            click.echo("  forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
+            click.echo("  forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
             click.echo("  forensic protocol --case-id C-004 --subject frame --frames-json '[{\"length\":4,\"declared_length\":5}]'")
             click.echo("  history")
             click.echo("  exit")
