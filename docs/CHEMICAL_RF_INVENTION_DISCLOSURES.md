@@ -1,40 +1,53 @@
 # Chemical-RF invention disclosures (not patent grants)
 
-These concepts are recorded as engineering invention disclosures for prior-art
-review and experimental validation. They must not be described as granted
-patents or as legally novel until a qualified patent professional completes a
-prior-art search and files an application.
+This document records technical concepts for prior-art review and experiments.
+It is not a patent application, does not establish legal novelty, and does not
+claim a patent has been granted. A patent professional must perform a prior-art
+search, define inventorship, and choose a filing strategy.
 
-## CRF-001 — Calibrated molecular-to-RF digital twin
+## Tool definition
 
-A provenance-preserving pipeline that combines bond descriptors, dielectric
-mixing estimates, calibrated complex impedance, and NMR observables. Every
-prediction carries units, calibration residuals, and a hash of the input
-parameters, enabling reproducible comparison of candidate materials.
+Chemical-RF Analysis is a local scientific tool that combines chemistry
+(structure, stoichiometry, bond-energy scale), RF engineering (complex
+impedance, reflection, dielectric loss, resonator screening), spectroscopy
+(NMR/Larmor/FID/FFT), physics (propagation), and mathematics (exact balancing,
+linear systems, uncertainty and provenance). Each result identifies units and
+whether it is calibrated or a model estimate.
 
-## CRF-002 — Reaction-aware RF sensing signature
+## New concept: CRF-005 — reaction-to-resonator evidence loop
 
-Exact stoichiometric balancing is coupled to a measured RF time series. The
-system separates an energy-equivalent frequency scale from actual RF peaks and
-reports uncertainty and environmental conditions, reducing false conclusions
-from dimensional misuse.
+A proposed research system that links (1) an exactly balanced reaction, (2) a
+material dielectric model, (3) measured complex impedance over a frequency
+sweep, and (4) an NMR/FID-derived chemical state marker. A deterministic
+provenance hash joins all four evidence streams. The system ranks candidate
+material states by a multi-objective score: reflection magnitude, resonance
+error, chemical-state consistency, and measurement uncertainty.
 
-## CRF-003 — Closed-loop chemical-RF material screening
+**Implementation boundary:** the current software performs offline screening
+and evidence joining only. It does not infer an unmeasured reaction, operate
+transmit hardware, or automate chemical handling.
 
-A safe offline optimization loop ranks candidate dielectric mixtures against a
-target resonator frequency and reflection coefficient. It proposes candidates
-for laboratory testing but never drives transmit hardware or chemical
-handling automatically.
+## CRF-006 — uncertainty-gated adaptive measurement plan
 
-## CRF-004 — Self-auditing spectroscopy evidence graph
+A proposed method that chooses the next *offline analysis frequency* only when
+uncertainty is high and a reference calibration is present. The candidate is
+selected by expected information gain from the current dielectric model; the
+software emits a measurement plan for a human/operator to approve rather than
+controlling equipment.
 
-NMR/FID, impedance calibration points, environmental metadata, and derived
-spectra are linked through deterministic provenance hashes. This makes model,
-measurement, and calibration lineage machine-verifiable.
+## Existing disclosures
 
-### Required validation before any filing
+- **CRF-001:** calibrated molecular-to-RF digital twin.
+- **CRF-002:** reaction-aware RF sensing signature.
+- **CRF-003:** offline chemical-RF material screening.
+- **CRF-004:** self-auditing spectroscopy evidence graph.
 
-1. Search scientific and patent prior art.
-2. Validate on independent laboratory datasets and reference loads.
-3. Define an instrument uncertainty budget and repeatability protocol.
-4. Obtain professional patent and safety review.
+## How to turn this into defensible research
+
+1. Search scientific and patent prior art before using “novel” or “inventive”.
+2. Freeze datasets and record calibration certificates, environment, and code
+   revision for every experiment.
+3. Compare against plain NMR, VNA, dielectric spectroscopy, and reaction-only
+   baselines.
+4. Report false positives, uncertainty, repeatability, and negative results.
+5. Obtain safety and professional patent review before any filing.
