@@ -1,411 +1,203 @@
-# 🦅 VULTURE — Offline Scientific Intelligence Platform
+# 🦅 VULTURE — Autonomous Intelligence & Research Platform
 
-VULTURE is a research-focused, offline scientific toolkit for chemistry, physics, mathematics, RF analysis, and forensic evidence review. It is built for controlled lab workflows, reproducible analysis, and auditable results driven by explicit user input and local datasets.
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](LICENSE)
+[![RF](https://img.shields.io/badge/RF%20DNA-receive%20only-0A7B5E)](#rf-dna)
 
-The platform is centered on:
-- deterministic calculations
-- provenance-aware reporting
-- local-only execution
-- transparent scientific workflows
-- safe forensic review of supplied evidence
-- CLI and Python API access
+VULTURE is a modular scientific and RF research platform for reproducible analysis, SDR receive workflows, signal processing, machine learning, RF fingerprinting, and auditable evidence review. It provides a terminal interface, Python APIs, and a graphical interface where available.
 
-VULTURE does not silently open hardware, probe external systems, or initiate live network activity. SDR support is presented in a simulator-friendly and research-oriented way, with any real hardware use remaining explicit, user-controlled, and environment-dependent.
+> **Important:** VULTURE is designed for lawful, authorized research and defensive monitoring. RF-DNA and SDR integrations are receive/analyse-only by design. The project does not implement jamming, spoofing, unauthorized interception, credential theft, exploitation, or automatic transmission.
 
----
+## What was restored and improved
 
-## Overview
+The original VULTURE direction—RF intelligence, SDR/IQ processing, ML, fingerprinting, GUI, CLI, security, and scientific tooling—is restored here as the platform vision. The newer offline chemistry/physics/forensic workflows remain part of the project and are documented below. v3 adds a practical RF-DNA layer without pretending that optional hardware or cloud services are always available.
 
-VULTURE combines multiple scientific and engineering domains:
+## Core capabilities
 
-- chemistry and chemical reasoning
-- RF and electromagnetic calculations
-- signal-processing concepts
-- spectroscopy workflows
-- material dielectric screening
-- mathematical validation
-- forensic evidence review for supplied local data
-- CLI and Python API access
+- **RF intelligence:** FFT, PSD, spectrograms, waterfall history, peak and burst detection, occupancy, noise-floor estimation, interference classification, and anomaly detection.
+- **SDR/IQ workflows:** explicit device discovery, receive-only capture, IQ recording/playback, SigMF/NPY/BIN/WAV handling, metadata, calibration, resampling, and analysis pipelines.
+- **RF-DNA fingerprinting:** reproducible feature extraction from supplied IQ, enrollment, similarity comparison, confidence scoring, dataset provenance, and signed audit records.
+- **No-SDR mode:** deterministic IQ simulation, recorded-capture playback, synthetic test profiles, and offline benchmarking.
+- **Remote RF-DNA:** optional authenticated service architecture for sending analysis jobs or receiving authorised IQ streams over TLS. Remote mode is disabled until explicitly configured and never discovers arbitrary networks.
+- **CLI + GUI parity:** analysis commands are scriptable from the terminal and exposed through a PyQt6 dashboard where supported.
+- **AI/ML:** classical ML, optional deep learning, model evaluation, explainable feature reports, and human approval before any automated action.
+- **Scientific modules:** chemistry/RF calculations, spectroscopy, material screening, mathematical validation, and offline forensic reporting.
+- **Quantum mechanics research:** optional quantum-signal-processing experiments such as QFT comparisons, variational classifiers, and noise-model studies. These are research features, not claims of quantum advantage.
+- **Security:** RBAC, plugin permissions, input validation, encrypted local stores where configured, audit logs, HMAC-signed records, rate limiting, and fail-closed remote controls.
 
-This makes it useful for:
-- scientific research
-- engineering analysis
-- RF simulation workflows
-- chemical-RF exploration
-- offline evidence audit
-- local report generation
+## RF-DNA
 
----
+RF-DNA means **RF Distributed Networked Analysis** in this project: a controlled way to connect local analysis, approved remote receivers, simulators, and fingerprint databases. It is not a surveillance network and it does not enable unauthorized access.
 
-## Why VULTURE
+### RF-DNA modes
 
-VULTURE was designed to support trustworthy research and analysis with a clear emphasis on:
-- reproducibility
-- validation
-- provenance
-- local-only execution
-- explainable outputs
-- audit-friendly reporting
+| Mode | Hardware | Network | Purpose |
+|---|---:|---:|---|
+| `simulator` | No | No | Test pipelines with deterministic IQ |
+| `file` | No | No | Analyse recorded IQ/SigMF evidence |
+| `local-sdr` | Optional | No | Receive from an attached, authorized SDR |
+| `remote-receiver` | Remote | TLS only | Consume an explicitly configured receiver |
+| `service` | Optional | TLS only | Share approved analysis jobs and results |
 
-Rather than pretending to operate on external environments, VULTURE focuses on:
-- computed results from explicit inputs
-- controlled analysis decks
-- documented assumptions
-- safe forensic reporting of supplied data
+### Supported design targets
 
----
+- RTL-SDR, PlutoSDR, UHD/USRP, and SoapySDR-compatible receive devices when their vendor drivers are installed.
+- Local simulator profiles: noise, CW, FM-like test signal, chirp, burst, QPSK-like samples, and multi-tone fixtures.
+- Transport abstraction for future RF-DNA services; no hard-coded credentials or open Internet probing.
+- Bounded sample rates, maximum capture durations, queue limits, and cancellation support.
+- Dataset manifests containing timestamp, centre frequency, sample rate, gain, source, hash, and consent/authorization metadata.
 
-## Core Capabilities
+### Safe receive-only examples
 
-### 1) Chemical-RF Analysis
-VULTURE includes scientific tools for chemistry and RF interplay, including:
-- exact chemical equation balancing
-- bond energy to equivalent frequency scaling
-- ideal NMR Larmor calculation
-- FID simulation
-- FFT spectrum generation
-- complex permittivity estimation
-- dielectric screening and resonance estimation
-- impedance modeling and reflection calculations
-
-### 2) Physics and RF Modeling
-- wavelength calculations
-- path-loss estimation
-- material resonance screening
-- propagation analysis
-- physical plausibility checks
-- frequency-domain analysis support
-
-### 3) Mathematics and Validation
-- linear-system solving
-- exact numerical validation
-- finite-value checks
-- deterministic calculations
-- structured result generation
-
-### 4) Forensic Audit Layer
-VULTURE provides offline forensic-style checks for:
-- chemistry input validation
-- physics plausibility
-- mathematical consistency
-- protocol/frame metadata review
-
-These commands work on supplied local evidence and return:
-- case identifier
-- subject
-- timestamp
-- SHA-256 digest
-- findings with severity
-- evidence
-- recommendation
-
-### 5) CLI and Interactive Prompt
-A friendly interactive shell is included:
-- `>` prompt
-- status and help commands
-- scientific command routing
-- local-only execution
-- structured JSON output
-
----
-
-## SDR-Ready Design
-
-VULTURE is designed with SDR-oriented workflows in mind, including:
-- RF spectrum concepts
-- frequency-domain calculations
-- waveform and signal analysis
-- simulation-driven experimentation
-- offline RF analysis pipelines
-
-Important boundary:
-- SDR-ready design is supported
-- live hardware operation is not activated by default
-- external network scanning is not performed
-- live RF transmission is not implied or executed automatically
-
-This keeps the platform safe, transparent, and suitable for controlled research and laboratory environments.
-
----
-
-## Installation
-
-### Requirements
-- Python 3.9+
-- pip
-- numpy
-- scipy
-- click
-- pytest
-
-### Install from source
 ```bash
-git clone https://github.com/black-210/VULTURE.git
-cd VULTURE
-python -m pip install -e .
+# Run a deterministic signal fixture without an SDR
+python -m vulture.rf_dna.cli simulate --profile multi-tone --duration 2 --sample-rate 1000000 --output capture.npz
+
+# Analyse a local capture
+python -m vulture.rf_dna.cli fingerprint --input capture.npz --label lab-device-01
+
+# Inspect configured receive backends; this does not open or transmit
+python -m vulture.rf_dna.cli backends
 ```
 
-### Development install
-```bash
-python -m pip install -e ".[dev]"
-```
+The command module is intentionally separate from the legacy CLI until the project’s packaging and hardware-driver policy is finalised.
 
----
+## Defensive and authorized research features
 
-## Command Line Usage
+- Spectrum occupancy and interference alerts for owned/authorized bands.
+- Baseline comparison and change detection.
+- RF-DNA drift monitoring to detect hardware changes or replay-like differences in controlled datasets.
+- Capture integrity hashes and chain-of-custody manifests.
+- Explainable alerts with thresholds, evidence windows, and confidence—not opaque claims.
+- Incident export to JSON/CSV/PDF-ready data for a human analyst.
+- Prometheus-compatible metrics can be added by deployments without exposing IQ data.
+- Safe lab exercises using simulators and prerecorded captures.
 
-### Start the interactive shell
-```bash
-vulture --interactive
-```
+VULTURE does **not** provide offensive RF capabilities such as jamming, denial of service, spoofing, unauthorized interception, evasion, or attack automation. Defensive research can be powerful without adding those unsafe capabilities.
 
-### Example session
-```text
-> help
-> info
-> status
-> rf-wavelength --frequency-hz 1e9
-> rf-path-loss --frequency-hz 2.4e9 --distance-m 10
-> chemical-rf nmr --nucleus 1H --field-t 7
-> chemical-rf material --epsilon-r 4.2 --conductivity 0.01 --frequency-hz 13560000 --length-m 0.1
-> chemical-rf physics --frequency-hz 2400000000 --distance-m 10
-> forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10
-> forensic chemistry --case-id C-002 --subject sample --compounds-json '[{"elements":{"H":2,"O":1}}]'
-> forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'
-> forensic protocol --case-id C-004 --subject frame --frames-json '[{"length":4,"declared_length":5}]'
-> exit
-```
-
----
-
-## Commands Reference
-
-### General commands
-```bash
-vulture --interactive
-vulture info
-vulture status
-```
-
-### RF commands
-```bash
-vulture rf-wavelength --frequency-hz 1e9
-vulture rf-path-loss --frequency-hz 2.4e9 --distance-m 10
-```
-
-### Chemical-RF commands
-```bash
-vulture chemical-rf nmr --nucleus 1H --field-t 7
-vulture chemical-rf material --epsilon-r 4.2 --conductivity 0.01 --frequency-hz 13560000 --length-m 0.1
-vulture chemical-rf physics --frequency-hz 2400000000 --distance-m 10
-vulture chemical-rf report --sample-id sample-01 --real-ohm 48 --imag-ohm -3 --frequency-hz 13560000
-```
-
-### Forensic commands
-```bash
-vulture forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10
-vulture forensic chemistry --case-id C-002 --subject sample --compounds-json '[{"elements":{"H":2,"O":1}}]'
-vulture forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'
-vulture forensic protocol --case-id C-004 --subject frame --frames-json '[{"length":4,"declared_length":5}]'
-```
-
----
-
-## Python API Examples
-
-### RF wavelength
-```python
-from vulture.chemical_rf.science import wavelength_m
-
-lam = wavelength_m(1e9)
-print(lam)
-```
-
-### Path loss
-```python
-from vulture.chemical_rf.science import free_space_path_loss_db
-
-loss_db = free_space_path_loss_db(2.4e9, 10.0)
-print(loss_db)
-```
-
-### NMR frequency
-```python
-from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
-
-freq = larmor_frequency_hz("1H", 7.0)
-print(freq)
-```
-
-### Forensic audit
-```python
-from vulture.forensics import audit_physics, audit_protocol
-
-report = audit_physics(
-    "C-001",
-    "sample-capture",
-    frequency_hz=2.4e9,
-    distance_m=10.0,
-    bandwidth_hz=5e6,
-)
-
-print(report.to_json())
-```
-
-### Chemical-RF material screening
-```python
-from vulture.chemical_rf.materials import complex_permittivity, dielectric_resonance_frequency
-
-eps = complex_permittivity(4.2, 0.01, 13.56e6)
-res = dielectric_resonance_frequency(4.2, 0.1)
-
-print(eps)
-print(res)
-```
-
----
-
-## Example Output
-
-### RF wavelength output
-```json
-{
-  "frequency_hz": 1000000000.0,
-  "wavelength_m": 0.299792458
-}
-```
-
-### Forensic chemistry output
-```json
-{
-  "case_id": "C-002",
-  "subject": "sample",
-  "mode": "offline-audit",
-  "input_sha256": "a1c9b7d4...",
-  "findings": [
-    {
-      "domain": "chemistry",
-      "code": "CHEM-001",
-      "severity": "high",
-      "title": "Missing composition",
-      "evidence": "compound index 0",
-      "recommendation": "Supply a validated elemental composition before balancing."
-    }
-  ]
-}
-```
-
----
-
-## Project Structure
+## Project structure
 
 ```text
 VULTURE/
 ├── README.md
 ├── pyproject.toml
 ├── requirements.txt
-├── src/
-│   └── vulture/
-│       ├── __init__.py
-│       ├── cli.py
-│       ├── forensic_cli.py
-│       ├── forensics.py
-│       ├── chemical_rf/
-│       │   ├── __init__.py
-│       │   ├── cli.py
-│       │   ├── science.py
-│       │   ├── spectroscopy.py
-│       │   ├── materials.py
-│       │   ├── pipeline.py
-│       │   └── ...
-│       └── ...
-├── docs/
-│   ├── CHEMICAL_RF_INTEGRATION.md
-│   ├── CHEMICAL_RF_USER_GUIDE.md
-│   ├── CHEMICAL_RF_INVENTION_DISCLOSURES.md
-│   ├── FORENSIC_AUDIT.md
+├── src/vulture/
+│   ├── cli.py                         # Main Click CLI
+│   ├── gui.py                         # Optional PyQt6 interface
+│   ├── core/                          # Registry, configuration, permissions, audit
+│   ├── rf_intelligence/               # FFT, PSD, spectrograms, detection
+│   ├── sdr_iq_framework/              # IQ formats and device abstractions
+│   ├── signal_processing/             # DSP and optional GPU acceleration
+│   ├── ml_framework/                  # Training, evaluation, model persistence
+│   ├── rf_fingerprinting_framework/   # Existing fingerprinting components
+│   ├── rf_dna/                        # v3 simulator, fingerprints, safe SDR adapter
+│   │   ├── __init__.py
+│   │   ├── simulator.py
+│   │   ├── fingerprint.py
+│   │   ├── sdr_adapter.py
+│   │   └── cli.py
+│   ├── chemical_rf/                   # Chemistry/RF and spectroscopy
+│   ├── forensics.py                   # Offline evidence audits
 │   └── ...
 ├── tests/
-│   ├── test_cli.py
-│   ├── test_forensics.py
-│   ├── test_chemical_rf.py
-│   └── ...
-└── ...
+├── docs/
+└── rf_fingerprinting/
 ```
 
----
+## Installation
 
-## Safety and Scientific Boundaries
+```bash
+git clone https://github.com/black-210/VULTURE.git
+cd VULTURE
+python -m pip install -e .
+```
 
-VULTURE is designed for:
-- local analysis
-- lab-safe workflows
-- scientific research
-- forensic review of supplied evidence
-- reproducible computations
+Optional development tools:
 
-The platform explicitly avoids:
-- silent live probing
-- unauthorized external access
-- live network scanning
-- unapproved hardware activation
-- harmful or exploitative automation
+```bash
+python -m pip install -e ".[dev]"
+pytest -q
+```
 
-All outputs should be reviewed as scientific or forensic evidence, not as legal proof or direct operational results.
+Optional SDR drivers are installed separately according to the hardware vendor and operating system. VULTURE must remain usable without them.
 
----
+## CLI
 
-## Licensing
+Existing scientific and forensic commands remain available:
 
-This project is distributed under the Apache 2.0 license unless otherwise noted.
+```bash
+vulture info
+vulture status
+vulture rf-wavelength --frequency-hz 1e9
+vulture rf-path-loss --frequency-hz 2.4e9 --distance-m 10
+vulture chemical-rf nmr --nucleus 1H --field-t 7
+vulture forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10
+vulture --interactive
+```
 
----
+v3 RF-DNA utilities:
 
-## Contributing
+```bash
+python -m vulture.rf_dna.cli --help
+python -m vulture.rf_dna.cli simulate --profile noise --duration 1 --sample-rate 1000000 --output noise.npz
+python -m vulture.rf_dna.cli fingerprint --input noise.npz --label test-fixture
+python -m vulture.rf_dna.cli backends
+```
 
-Contributions are welcome in:
-- chemistry modeling
-- RF simulation and analysis
-- physics validation
-- spectroscopy tools
-- forensic reporting
-- CLI improvement
-- documentation and test coverage
+All outputs should be treated as research results requiring review. A fingerprint is a statistical similarity result, not proof of identity.
 
-Please keep changes:
-- deterministic
-- documented
-- test-backed
-- scientifically explainable
+## Offline scientific modules
 
----
+The platform retains the chemistry, physics, mathematics, spectroscopy, material screening, and forensic audit workflows from the offline scientific edition. They are deterministic where possible, provenance-aware, and operate on explicit user input. No command silently opens hardware, scans a network, or transmits RF.
+
+## Quantum mechanics / quantum signal processing
+
+The optional QSP layer is intended for education and research:
+
+- Quantum Fourier Transform versus classical FFT benchmarks.
+- Variational quantum circuits for small RF feature vectors.
+- Simulated quantum noise and robustness experiments.
+- Hybrid classical/quantum model notebooks when Qiskit, Cirq, or another supported SDK is installed.
+- Reproducible seeds, circuit diagrams, resource counts, and a classical baseline for every experiment.
+
+Quantum features are optional and must not be required for ordinary RF analysis.
+
+## Security model
+
+- Explicit device allowlists; no arbitrary device or network discovery.
+- Receive-only adapter contract; no transmit method is exposed by the v3 adapter.
+- TLS and authentication are required for remote deployments.
+- Per-job authorization, bounded resources, cancellation, and audit events.
+- Plugin isolation and permission checks.
+- SHA-256 capture hashes and provenance manifests.
+- Human approval for exports, sharing, or any future hardware-control extension.
+
+## Testing
+
+```bash
+pytest -q
+pytest --cov=src --cov-report=term-missing
+```
+
+The RF-DNA modules include deterministic simulator and fingerprint tests. Hardware tests should run only in a controlled lab and must be marked separately from the offline test suite.
+
+## Legal and ethical use
+
+Use VULTURE only with systems, frequencies, datasets, and receivers you own or are explicitly authorized to test. Follow local spectrum rules, privacy laws, licensing requirements, and organizational policy. Do not use RF-DNA to identify people, track private devices, or intercept communications without lawful authorization.
+
+## License
+
+This project is distributed under the Apache 2.0 license unless otherwise noted. See `LICENSE`.
 
 ## Roadmap
 
-Planned improvements include:
-- deeper RF material models
-- richer spectroscopy support
-- improved physical validation
-- stronger forensic reporting
-- richer JSON and TXT exports
-- dashboard-style local summaries
-- expanded CLI usability
+- [x] Restore the original RF/SDR/AI/ML platform direction in the main README.
+- [x] Add no-hardware RF-DNA simulation and reproducible fingerprinting primitives.
+- [x] Add a receive-only SDR adapter boundary.
+- [ ] Add an authenticated TLS RF-DNA service with tenant isolation.
+- [ ] Add GUI RF-DNA dashboard and capture provenance viewer.
+- [ ] Add optional SoapySDR/UHD integration tests for approved lab hardware.
+- [ ] Add quantum experiment examples with classical baselines.
 
----
-
-## Status
-
-VULTURE is an active scientific engineering platform focused on:
-- local-only analysis
-- chemistry + RF workflows
-- forensic evidence review
-- reproducible scientific output
-- safe research-oriented operations
-
----
-
-## Final Note
-
-VULTURE is best understood as a scientifically grounded, locally executed toolkit for chemistry, RF analysis, mathematics, and evidence review. It prioritizes clarity, reproducibility, and safe operation in controlled research contexts.
-
-
+**VULTURE: powerful scientific and defensive analysis, explicit controls, and no unsafe automation.**
