@@ -30,3 +30,11 @@ class FeatureEngineering:
         features.update(FeatureEngineering.extract_spectral_features(iq_data))
         features['phase_deviation'] = np.std(np.angle(iq_data))
         return features
+    def extract_features(self, data):
+        features = {}
+        features.update(FeatureEngineering.extract_statistical_features(data))
+        features.update(FeatureEngineering.extract_spectral_features(data))
+        features.update(FeatureEngineering.extract_temporal_features(data))
+        return features
+    def extract_features_from_iq(self, iq_data):
+        return FeatureEngineering.extract_iq_features(iq_data)

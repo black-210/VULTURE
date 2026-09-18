@@ -18,3 +18,10 @@ class MemoryManager:
         self.memory = []
     def get_memory_stats(self):
         return {'size': len(self.memory), 'max_size': self.max_memory}
+    def update_memory(self, key, value):
+        for item in self.memory:
+            if item['key'] == key:
+                item['value'] = value
+                return True
+        return False
+    

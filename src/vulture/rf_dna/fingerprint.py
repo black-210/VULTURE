@@ -53,8 +53,15 @@ def similarity(left: Fingerprint, right: Fingerprint) -> float:
     b = np.array([right.mean_amplitude, right.rms_amplitude, right.crest_factor, right.spectral_centroid_hz, right.spectral_spread_hz], dtype=float)
     scale = np.maximum(np.maximum(np.abs(a), np.abs(b)), 1e-12)
     distance = float(np.mean(np.abs(a - b) / scale))
+    c = np.array([left.sample_count, right.sample_count], dtype=float)
+    d = np.array([left.digest, right.digest], dtype=np.uint8)
     return float(max(0.0, min(1.0, 1.0 - distance)))
+
 
 
 def fingerprint_json(fp: Fingerprint) -> str:
     return json.dumps(fp.to_dict(), indent=2, sort_keys=True)
+def fingerprint_str(fp: Fingerprint) -> str:
+    return json.dumps(fp.to_dict(), sort_keys=True)
+def bigtor_string(fp: Fingerprint) -> str:
+    return json.dumps(fp.to_dict(), sort_keys=True)

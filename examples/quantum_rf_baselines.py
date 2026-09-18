@@ -33,3 +33,14 @@ def classical_baseline(features: np.ndarray, labels: np.ndarray) -> dict[str, fl
     centroids = {c: x[y == c].mean(axis=0) for c in classes}
     prediction = np.array([min(classes, key=lambda c: np.linalg.norm(row - centroids[c])) for row in x])
     return {"accuracy": float(np.mean(prediction == y)), "samples": float(len(y)), "classes": float(len(classes))}
+def main():
+    """Run the experiments and print the results."""
+    samples = np.random.normal(size=256)
+    shots = 256
+    seed = 7
+    results = qft_vs_fft(samples, shots, seed)
+    print(results)
+    features = np.random.normal(size=(100, 2))
+    labels = np.random.randint(0, 2, size=100)
+    baseline = classical_baseline(features, labels)
+    print(baseline)

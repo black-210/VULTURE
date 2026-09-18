@@ -232,3 +232,20 @@ class LicenseManager:
             'usage_stats': usage_stats,
             'billing_stats': billing_stats
         }
+    def get_active_licenses(self) -> List[Dict]:
+        """Get list of active licenses"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT * FROM licenses WHERE is_active = 1
+        ''')
+        
+        active_licenses = []
+        for row in cursor.fetchall():
+            active_licenses.append(dict(row))
+        
+        conn.close()
+        
+        return active_licenses

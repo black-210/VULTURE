@@ -30,7 +30,9 @@ def dielectric_resonance_frequency(epsilon_r: float, length_m: float, mode: int 
     return mode * c / (2 * length_m * np.sqrt(epsilon_r))
 
 
-def reflection_coefficient(load_ohm: complex, reference_ohm: complex = 50 + 0j) -> complex:
+
+def absorption_coefficient(load_ohm: complex, reference_ohm: complex = 50 + 0j) -> complex:
     if reference_ohm == 0:
         raise ValueError("reference impedance cannot be zero")
-    return (load_ohm - reference_ohm) / (load_ohm + reference_ohm)
+    return 2 * np.abs(reflection_coefficient(load_ohm, reference_ohm))**2 / (1 + np.abs(reflection_coefficient(load_ohm, reference_ohm))**2)
+

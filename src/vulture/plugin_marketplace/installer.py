@@ -153,3 +153,66 @@ class PluginInstaller:
         except Exception as e:
             logger.error(f"Update failed: {e}")
             return False
+    def update_from_url(self, plugin_name: str, url: str) -> bool:
+        """Update plugin from remote URL"""
+        try:
+            import urllib.request
+
+            target_file = self.plugin_dir / f"{plugin_name}.zip"
+
+            logger.info(f"Downloading plugin from {url}")
+            urllib.request.urlretrieve(url, target_file)
+
+            # Update from file
+            success = self.update_plugin(plugin_name, str(target_file))
+
+            # Clean up download
+            target_file.unlink()
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Download failed: {e}")
+            return False
+    def install_from_url(self, url: str, plugin_name: str) -> bool:
+        """Install plugin from remote URL"""
+        try:
+            import urllib.request
+
+            target_file = self.plugin_dir / f"{plugin_name}.zip"
+
+            logger.info(f"Downloading plugin from {url}")
+            urllib.request.urlretrieve(url, target_file)
+
+            # Install from file
+            success = self.install_from_file(str(target_file), plugin_name)
+
+            # Clean up download
+            target_file.unlink()
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Download failed: {e}")
+            return False
+    def uninstall_from_uri(self, uri: str) -> bool:
+        """Uninstall plugin from remote URI"""
+        try:
+            import urllib.request
+
+            target_file = self.plugin_dir / f"{uri}.zip"
+
+            logger.info(f"Downloading plugin from {uri}")
+            urllib.request.urlretrieve(uri, target_file)
+
+            # Uninstall from file
+            success = self.uninstall_from_file(str(target_file))
+
+            # Clean up download
+            target_file.unlink()
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Download failed: {e}")
+            return False

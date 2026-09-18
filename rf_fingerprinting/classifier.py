@@ -123,3 +123,18 @@ class RFClassifier:
         if self.algorithm == 'rf' and hasattr(self.classifier, 'feature_importances_'):
             return self.classifier.feature_importances_
         return None
+    def save_model(self, filepath: str):
+        """Save the trained model to a file.
+        
+        Args:
+            filepath: Path to save the model.
+        """
+        import joblib
+        joblib.dump({
+            'classifier': self.classifier,
+            'scaler': self.scaler,
+            'classes_': self.classes_,
+            'algorithm': self.algorithm,
+            'random_state': self.random_state
+        }, filepath)
+        logger.info(f"Model saved to {filepath}")

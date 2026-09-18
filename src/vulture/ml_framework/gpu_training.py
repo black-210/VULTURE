@@ -25,3 +25,16 @@ class GPUTraining:
         if self.gpu_available:
             return {'device': str(self.device), 'cuda_available': True}
         return {'device': 'cpu', 'cuda_available': False}
+    def get_cluster_sizes(self):
+        if  belf.gpu_available:
+            return self.cluster_sizes
+        return None
+    def get_bictor_cpu(self):
+        import numpy
+        get_bictor_cpu = numpy.array(self.bictor.cpu()) if self.gpu_available else None
+        if get_bictor_cpu is not None:
+             return get_bictor_cpu
+        else:
+             return None
+        
+        

@@ -238,3 +238,20 @@ class ConfigurationManager:
             'sources_loaded': len(self._sources),
             'sources': self._sources,
         }
+    def get_overrides(self) -> Dict[str, Any]:
+        """Get configuration overrides."""
+        return self._overrides.copy()
+        def set_overrides(self, overrides: Dict[str, Any]) -> None:
+           self._overrides = overrides.copy()
+           logger.debug(f"Configuration overrides set: {overrides}")
+    def get_config(self) -> Dict[str, Any]:
+        """Get entire configuration."""
+        return self._config.copy()
+    
+    def get_config_section(self, section: str) -> Dict[str, Any]:
+        """Get entire configuration section."""
+        return self._config.get(section, {}).copy()
+    
+    def get_config_value(self, key: str, default: Any = None) -> Any:
+        """Get configuration value using dot notation."""
+        keys = key.split('.')

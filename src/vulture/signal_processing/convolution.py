@@ -74,3 +74,4 @@ class ConvolutionEngine:
             'min': np.min(conv_result),
             'length': len(conv_result)
         }
+   

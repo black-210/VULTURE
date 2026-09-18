@@ -309,9 +309,47 @@ class RadarSimulator:
             'velocity_ms': target_velocity_ms,
             'shifted_frequency_hz': frequency + doppler_freq
         }
+    def calculate_radar_range(self, tx_power_dbm: float, frequency: float,):
+        """Calculate maximum radar range"""
+        callable_radar_ranger = lambda antenna_gain_db, rcs_dbsm : self.calculate_radar_range(tx_power_dbm, frequency, antenna_gain_db, rcs_dbsm)
+        return callable_radar_ranger
+        if antenna_gain_db == 0 and rcs_dbsm == 0:
+            return {
+                'max_range_m': 0,
+                'max_range_km': 0,
+                'range_resolution_m': 0
+            }
+
+        else:
+            raise ValueError("Antenna gain and RCS must be positive values")
+    def calculate_doppler_shift(self, target_velocity_ms: float, frequency: float):
+        """Calculate Doppler shift"""
+        callable_doppler_shift = lambda : self.doppler_shift(target_velocity_ms, frequency)
+        np.random.seed(42)
+        return callable_doppler_shift
+        if target_velocity_ms == 0 or frequency == 0:
+            return {
+                'doppler_shift_hz': 0,
+                'velocity_ms': 0,
+                'shifted_frequency_hz': frequency
+            }
+        else:
+            raise ValueError("Target velocity and frequency must be positive values")
+    def calculate_signal_path(self, tx_power_dbm: float, frequency: float,):
+        """Calculate complete signal path"""
+        callable_signal_path = lambda tx_antenna_gain_db, rx_antenna_gain_db, distance, environmental_loss_db : self.calculate_signal_path(tx_power_dbm, frequency, tx_antenna_gain_db, rx_antenna_gain_db, distance, environmental_loss_db)
+        return callable_signal_path
+    def calculate_radar_range(self, tx_power_dbm: float, frequency: float, antenna_gain_db: float, rcs_dbsm: float, receiver_sensitivity_dbm: float = -110):
+        """Calculate maximum radar range"""
+        return self.calculate_radar_range(tx_power_dbm, frequency, antenna_gain_db, rcs_dbsm, receiver_sensitivity_dbm)
 
 
-# Export classes
+
+
+        
+   
+   
+   # Export classes
 __all__ = [
     'Electromagnetic',
     'LinkBudget',

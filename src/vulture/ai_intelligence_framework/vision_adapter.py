@@ -21,3 +21,4 @@ class VisionAdapter:
         if self.model:
             return self.model.encode_text(text)
         return None
+        

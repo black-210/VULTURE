@@ -56,3 +56,40 @@ class ExperimentRecord:
             "results": {k: vars(v) for k, v in self.results.items()},
             "created_at": self.created_at,
         }
+    def from_dict(cls, data: Dict[str, object]) -> ExperimentRecord:
+        return cls(
+            sample_id=data["sample_id"],
+            method=data["method"],
+            parameters=data.get("parameters", {}),
+            results={k: Measurement(**v) for k, v in data.get("results", {}).items()},
+            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat())
+        )
+      
+    
+    def validate(self) -> None:
+        if not self.sample_id:
+           raise ValueError("sample_id is required")
+        if not self.method:
+            raise ValueError("method is required")
+        for key, measurement in self.results.items():
+            if not isinstance(measurement, Measurement):
+                raise ValueError(f"Result '{key}' must be a Measurement instance")
+    def add_result(self, key: str, measurement: Measurement) -> None:
+        if key in self.results:
+            raise ValueError(f"Result '{key}' already exists")
+        self.results[key] = measurement
+        self.validate()
+    def remove_result(self, key: str) -> None:
+        if key not in self.results:
+            raise ValueError(f"Result '{key}' does not exist")
+        del self.results[key]
+        self.validate()
+    def update_result(self, key: str, measurement: Measurement) -> None:
+        if key not in self.results:
+            raise ValueError(f"Result '{key}' does not exist")
+        self.results[key] = measurement
+        self.validate()
+    def get_result(self, key: str) -> Measurement:
+        if key not in self.results:
+            raise ValueError(f"Result '{key}' does not exist")
+        return self.results[key]

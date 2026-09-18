@@ -96,3 +96,94 @@ class Clusterer:
         features_scaled = self.scaler.transform(features)
         labels = self.predict(features)
         return silhouette_score(features_scaled, labels)
+    def get_cluster_labels(self) -> Optional[np.ndarray]:
+        """Get cluster labels after fitting.
+        
+        Returns:
+            Cluster labels or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+        return self.clusterer.labels_
+    def get_cluster_sizes(self) -> Optional[np.ndarray]:
+        
+        """Get the number of clusters found.
+        
+        Returns:
+            Number of clusters.
+        """
+        if self.clusterer is None:
+            raise ValueError("Clusterer not fitted yet")
+        
+        if self.algorithm == 'kmeans':
+            return self.n_clusters
+        elif self.algorithm == 'dbscan':
+            return len(set(self.clusterer.labels_)) - (1 if -1 in self.clusterer.labels_ else 0)
+    def get_cluster_sizes(self) -> Optional[np.ndarray]:
+        """Get sizes of each cluster.
+        
+        Returns:
+            Array of cluster sizes or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+        
+        labels = self.get_cluster_labels()
+        unique, counts = np.unique(labels, return_counts=True)
+        return dict(zip(unique, counts))
+    def get_cluster_features(self, features: np.ndarray) -> Optional[np.ndarray]:
+        """Get features of each cluster.
+
+        Args:
+            features: Feature matrix.
+
+        Returns:
+            Array of cluster features or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+
+        labels = self.predict(features)
+        unique, inverse = np.unique(labels, return_inverse=True)
+        cluster_features = [features[inverse == i] for i in unique]
+        return cluster_features
+    def get_cluster_centers(self) -> Optional[np.ndarray]:
+        """Get cluster centers.
+
+        Returns:
+            Array of cluster centers or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+
+        if self.algorithm == 'kmeans':
+            return self.scaler.inverse_transform(self.clusterer.cluster_centers_)
+        elif self.algorithm == 'dbscan':
+            return self.scaler.inverse_transform(self.clusterer.components_)
+        else:
+            raise ValueError(f"Unknown algorithm: {self.algorithm}")
+    def get_cluster_sizes(self) -> Optional[np.ndarray]:
+        """Get sizes of each cluster.
+        Returns:
+            Array of cluster sizes or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+            unique, counts = np.unique(self.clusterer.labels_, return_counts=True)
+            return dict(zip(unique, counts))
+            def get_cluster_features(self, features: np.ndarray) -> Optional[np.ndarray]:
+                """Get features of each cluster.
+                Args:
+                    features: Feature matrix.
+
+                Returns:
+                    Array of cluster features or None if not fitted.
+                """
+                if self.clusterer is None:
+                    return None
+
+                labels = self.predict(features)
+                unique, inverse = np.unique(labels, return_inverse=True)
+                cluster_features = [features[inverse == i] for i in unique]
+                return cluster_features
+     
