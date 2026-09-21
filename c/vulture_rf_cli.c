@@ -3,9 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 static int parse_positive(const char *text, double *value) {
     char *end = NULL;
     double parsed;
+
+    if (text == NULL || value == NULL) {
+        return 0;
+    }
 
     errno = 0;
     parsed = strtod(text, &end);
