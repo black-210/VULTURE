@@ -1,3 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulture"
+version = "0.1.0"
+description = "VULTURE — RF analysis, fingerprinting, forensics and physics toolkit"
+readme = "README.md"
+requires-python = ">=3.8"
+
 [project.scripts]
 vulture = "vulture.cli:cli"
 vulture-chemical-rf = "vulture.chemical_rf.cli:chemical_rf_cli"
