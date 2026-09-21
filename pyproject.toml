@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vulture"
-version = "0.10.0"
+version = "3.0.0"
 description = "VULTURE — receive-only RF analysis, fingerprinting, forensics and physics toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,7 +43,7 @@ vulture = "vulture.cli:cli"
 vulture-chemical-rf = "vulture.chemical_rf.cli:chemical_rf_cli"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
