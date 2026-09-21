@@ -15,6 +15,7 @@ import click
 from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
 from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
 from vulture.forensics import audit_chemistry, audit_mathematics, audit_physics, audit_protocol
+from vulture.lab_cli import lab_cli
 
 
 @click.group(invoke_without_command=True)
@@ -26,6 +27,9 @@ def cli(ctx: click.Context, interactive: bool) -> None:
         InteractiveShell().run()
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
+
+
+cli.add_command(lab_cli, name="lab")
 
 
 @cli.command()

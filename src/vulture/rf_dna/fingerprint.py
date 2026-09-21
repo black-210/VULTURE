@@ -29,8 +29,8 @@ def extract_fingerprint(iq: np.ndarray, sample_rate: float) -> Fingerprint:
         raise ValueError("IQ must be non-empty and finite; sample_rate must be positive")
     amp = np.abs(x).astype(np.float64)
     power = amp * amp
-    spectrum = np.abs(np.fft.rfft(x)) ** 2
-    frequencies = np.fft.rfftfreq(x.size, 1.0 / sample_rate)
+    spectrum = np.abs(np.fft.fft(x)) ** 2
+    frequencies = np.fft.fftfreq(x.size, 1.0 / sample_rate)
     total = float(spectrum.sum())
     centroid = float((frequencies * spectrum).sum() / total) if total else 0.0
     spread = float(np.sqrt(((frequencies - centroid) ** 2 * spectrum).sum() / total)) if total else 0.0
@@ -53,8 +53,6 @@ def similarity(left: Fingerprint, right: Fingerprint) -> float:
     b = np.array([right.mean_amplitude, right.rms_amplitude, right.crest_factor, right.spectral_centroid_hz, right.spectral_spread_hz], dtype=float)
     scale = np.maximum(np.maximum(np.abs(a), np.abs(b)), 1e-12)
     distance = float(np.mean(np.abs(a - b) / scale))
-    c = np.array([left.sample_count, right.sample_count], dtype=float)
-    d = np.array([left.digest, right.digest], dtype=np.uint8)
     return float(max(0.0, min(1.0, 1.0 - distance)))
 
 

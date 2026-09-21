@@ -8,6 +8,7 @@ copying or deleting its public API.
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 _legacy_path = Path(__file__).resolve().parents[1] / "chemical_rf.py"
@@ -15,6 +16,7 @@ _spec = importlib.util.spec_from_file_location("vulture._chemical_rf_legacy", _l
 if _spec is None or _spec.loader is None:
     raise ImportError(f"cannot load legacy Chemical-RF module: {_legacy_path}")
 _legacy = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _legacy  # required for dataclasses on Python 3.14+
 _spec.loader.exec_module(_legacy)
 
 ChemicalBond = _legacy.ChemicalBond
@@ -26,7 +28,7 @@ from .calibration import ImpedanceCalibrator, LinearCalibration, combine_uncerta
 from .models import CalibrationPoint, ExperimentRecord, Measurement
 from .materials import (
     complex_permittivity, dielectric_resonance_frequency,
-    maxwell_garnett_permittivity, reflection_coefficient,
+    maxwell_garnett_permittivity, reflection_coefficient, absorption_coefficient,
 )
 from .pipeline import ChemicalRFAnalysisPipeline, ChemicalRFReport
 from .spectroscopy import larmor_frequency_hz, simulate_fid, spectrum_from_fid
@@ -36,6 +38,7 @@ __all__ = [
     "CalibrationPoint", "ExperimentRecord", "Measurement", "ImpedanceCalibrator",
     "LinearCalibration", "combine_uncertainty", "complex_permittivity",
     "dielectric_resonance_frequency", "maxwell_garnett_permittivity",
-    "reflection_coefficient", "ChemicalRFAnalysisPipeline", "ChemicalRFReport",
+    "reflection_coefficient", "absorption_coefficient",
+    "ChemicalRFAnalysisPipeline", "ChemicalRFReport",
     "larmor_frequency_hz", "simulate_fid", "spectrum_from_fid",
 ]

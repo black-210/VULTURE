@@ -20,7 +20,10 @@ class TimeSeriesEngine:
         """Add data with circular buffer."""
         data = np.asarray(data)
         n = len(data)
-        if self.position + n <= self.buffer_size:
+        if n >= self.buffer_size:
+            self.buffer[:] = data[-self.buffer_size:]
+            self.position = self.buffer_size
+        elif self.position + n <= self.buffer_size:
             self.buffer[self.position:self.position+n] = data
             self.position += n
         else:
