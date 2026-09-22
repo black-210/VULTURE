@@ -41,6 +41,7 @@ The project combines a Python application layer with an optional native C analys
 - [Limitations and responsible use](#limitations-and-responsible-use)
 - [Roadmap](#roadmap)
 - [License and identity](#license-and-identity)
+- [Linux Distribution Support](#linux-distribution-support)
 
 ---
 
@@ -813,9 +814,7 @@ VULTURE is currently packaged and available in security-focused Linux ecosystems
 - **Pentoo Linux:** `net-wireless/vulture`
   https://github.com/pentoo/pentoo-overlay
 
-- **Source Repository:**
-  https://github.com/black-210/VULTURE
-
+  
 
 ---
 
