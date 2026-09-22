@@ -802,6 +802,21 @@ Future work may include:
 
 New features should remain local, reviewable, dependency-light, and compatible with the existing VULTURE safety model. The project should not gain broad, implicit, or opaque operational behavior merely because a feature is technically possible.
 
+
+## Linux Distribution Support
+
+VULTURE is currently packaged and available in security-focused Linux ecosystems:
+
+- **BlackArch Linux:** `vulture-black`
+  https://blackarch.org/radio.html
+
+- **Pentoo Linux:** `net-wireless/vulture`
+  https://github.com/pentoo/pentoo-overlay
+
+- **Source Repository:**
+  https://github.com/black-210/VULTURE
+
+
 ---
 
 ## License and identity
@@ -809,3 +824,5 @@ New features should remain local, reviewable, dependency-light, and compatible w
 VULTURE retains its project identity and existing direction. See [LICENSE](LICENSE) for the repository license and the project’s legal and ethical-use documentation for deployment requirements.
 
 **VULTURE: scientific and defensive analysis, explicit controls, reproducible evidence, and no unsafe automation.**
+
+
