@@ -1,4 +1,4 @@
-# 🦅 VULTURE — Autonomous Intelligence & Research Platform
+🦅 VULTURE — Scientific, RF,# 🦅 VULTURE — Autonomous Intelligence & Research Platform
 
 VULTURE is a receive-only RF analysis, scientific tooling, signal-processing, forensics, and chemistry/physics platform built for offline investigation of local data and authorized signals. The project combines a Python CLI, optional scientific modules, RF-DNA workflows, forensic audits, and an isolated C extension layer.
 
