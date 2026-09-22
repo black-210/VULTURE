@@ -29,9 +29,48 @@ This layer does not:
 
 The C section is designed around a conservative safety model: values are processed only from explicitly supplied local files or command-line inputs, and the results are descriptive, reproducible, and reviewable.
 
+The goal is not to create a broad autonomous radio platform. The goal is to create a small, understandable set of tools for modeling, signal processing, file integrity checking, and local analysis of supplied evidence. This is a disciplined engineering layer for research, testing, and laboratory workflows where authorized local input must be examined carefully.
+
 ---
 
-## What is included
+## Why a C layer exists
+
+Python is excellent for readability, rapid prototyping, and integration. However, certain tasks benefit greatly from a native implementation:
+
+- predictable memory behavior
+- compact binaries
+- low runtime overhead
+- reproducible deterministic computation
+- explicit ownership semantics
+- easier portability to constrained systems and wrappers
+- compatibility with embedded, command-line, or lab automation flows
+
+The C layer answers that need without taking ownership of all of the project behavior. It remains a narrow extension built around explicit inputs and explicit outputs.
+
+This separation is intentional. The Python side remains the primary integration and user-facing interface. The C side exists for performance-sensitive, safer, or more constrained workflows where native code is a better fit.
+
+---
+
+## Safety boundaries
+
+The C layer follows a fail-closed design. It does not create hidden behavior or shadow broader platform capabilities.
+
+Key rules:
+
+- inputs must be explicitly provided by the user or by a local file
+- output is descriptive and informational only
+- no implicit device access
+- no network calls
+- no broadcasting or emission logic
+- no automatic hardware tuning or scanning loops
+- no output that claims identification, attribution, or calibration without metadata
+- all functions are reviewable and small enough to inspect by hand
+
+This is important: the native layer is not a broad signal intelligence system. It is an analysis toolkit that consumes data you provide it, in a bounded and explainable way.
+
+---
+
+## Included areas
 
 The C layer currently covers several stable domains:
 
@@ -54,6 +93,7 @@ The C layer currently covers several stable domains:
 | IQ analysis | Receive-only IQ metrics from local files |
 | Reporting | Deterministic, machine-readable JSON-like output |
 | Isolation | Native code remains separate from Python logic and runtime dependencies |
+| Interop | C/C++/C# compatibility declarations are deliberately minimal and explicit |
 
 ---
 
@@ -102,6 +142,8 @@ c/
     └── (optional local analysis fixtures, if added later)
 ```
 
+This layout keeps each module focused and composable. The goal is not to compress everything into a single enormous source file. Instead, it is easier to reason about the system when each file has a narrow job: reading, windowing, spectrum analysis, health evaluation, report generation, or command-line orchestration.
+
 ---
 
 ## Build and run
@@ -129,7 +171,7 @@ This creates the native executables in the repository root according to the curr
 make -C c clean
 ```
 
----
+----
 
 ## Command center
 
@@ -196,31 +238,184 @@ The output is intentionally descriptive and local-only. It is not a claim of ori
 
 ---
 
-## Safety and engineering principles
+## What the native tools actually do
 
-The C layer follows a deliberately minimal and safe design model:
+The C layer is intentionally conservative and should be understood as a boundary around analysis rather than control.
 
-- C11-first implementation with standard libraries only
-- small, composable modules with explicit interfaces
-- no automatic hardware probing or device discovery
-- deterministic behavior from supplied local input
-- fail-closed error handling for invalid files and invalid parameters
-- memory ownership through clear cleanup functions
-- local-only output and no remote connectivity assumptions
-- no claims of operational capability beyond the input data provided
+### 1. Signal statistics
 
-This makes the C extension layer a useful complement to the main Python platform while keeping the responsibilities and risks clearly bounded.
+The core signal analysis computes values such as:
+
+- mean
+- variance
+- standard deviation
+- RMS
+- median
+- minimum and maximum
+- peak-to-peak range
+
+These are useful for understanding the distribution and amplitude characteristics of a supplied dataset. They are analytic descriptions, not identifiers.
+
+### 2. Peak detection
+
+The peak detection routines inspect local extrema and compare them against a threshold, which defaults to a simple statistical boundary derived from the signal. This helps identify major local maxima while remaining deterministic and bounded.
+
+### 3. File integrity
+
+SHA-256 is calculated for file contents and buffer content. This supports local evidence tracking, checksums, and reproducibility workflows without external services.
+
+### 4. RF calculations
+
+Local RF calculations include wavelength and free-space path loss based on supplied frequency and distance values. This is purely mathematical and does not use hardware or probes.
+
+### 5. IQ analysis
+
+IQ analysis is intended for local files containing paired in-phase and quadrature samples. The code estimates:
+
+- DC offset
+- signal magnitude and power
+- signal shape statistics
+- dominant frequency content
+- signal quality indicators such as correlation and clipping
+
+This is useful for local fixture inspection and deterministic evaluation of supplied captures. The analysis does not infer transmitter configuration or unique device identity.
+
+### 6. File conversion and tooling
+
+The translator utility preserves text content and produces small C programs that can print the preserved content. This is a packaging and operational utility for code generation and translation workflows, not a generalized interpreter.
 
 ---
 
-## Interop and compatibility notes
+## Data model and file-handling rules
 
-The native layer also contains compatibility definitions designed for external tool integration:
+The native layer is designed around a few explicit data structures:
 
-- `vulture_cpp.h` provides C++ linkage guards around C symbols
-- `vulture_csharp_abi.h` provides a C-ABI-friendly surface for use in a managed integration layer
+- `SignalBuffer` for scalar numeric arrays
+- `SignalStats` for aggregate statistics
+- `PeakSummary` for detected extrema
+- `VultureIQSample` for complex-valued baseband samples
+- `VultureIQSeries` for ordered collections of samples
+- `VultureIQHealth` for defensive signal-quality metrics
+- `VulturePeak` for dominant spectral detection results
 
-These are intentionally kept simple and explicit. They do not add remote connectivity or hidden execution paths.
+These structures make it easier to reason about memory ownership. Dynamic buffers are freed via dedicated cleanup functions like `vulture_free_signal` and `vulture_iq_series_free`. This reduces leak risk and makes the code easier to inspect.
+
+---
+
+## Input format and examples
+
+### Scalar signal file
+
+```text
+0.1 1.4 0.2 4.8 0.1 3.2 0.2 5.9
+```
+
+Example usage:
+
+```bash
+./vulture_cli analyze c/sample_signal.txt
+```
+
+### IQ file
+
+```text
+1.0,0.0
+0.7,0.7
+0.0,1.0
+-0.7,0.7
+```
+
+Example usage:
+
+```bash
+./vulture-c analyze capture.txt --sample-rate 1000000
+```
+
+The IQ parser accepts local text input with either comma or whitespace separators in a simple format. The loader checks for finite values and rejects invalid or non-numeric data. This prevents silent corruption and makes debugging easier.
+
+---
+
+## C++ and C# compatibility
+
+The C layer includes compatibility headers that are intentionally narrow and explicit.
+
+### C++ linkage guards
+
+`vulture_cpp.h` is intended to provide protected C linkage for symbols that are exported to C++ code. This helps maintain deterministic ABI behavior when a C function is called from C++ without exposing an uncontrolled object model.
+
+### C#-friendly ABI declarations
+
+`vulture_csharp_abi.h` defines a C ABI surface that can be consumed by managed wrappers or language bindings. The intention is not to create a full managed SDK, but to provide a small, stable, explicit function boundary for external tooling.
+
+These interfaces are intentionally minimal. They are not intended to magically turn the native layer into a general-purpose radio API or exploit surface.
+
+---
+
+## Engineering principles
+
+The native layer follows a deliberately conservative design:
+
+- C11 first: no C++ and no compiler-specific language extensions are required
+- Small interfaces: reusable functions are exposed through public headers
+- Fail closed: invalid paths, empty signals, allocation failures, and invalid parameters return errors
+- Deterministic behavior: calculations use supplied local inputs and stable output formats
+- Ownership clarity: dynamically allocated signal buffers are released through explicit cleanup functions
+- No destructive operations: analysis tools read inputs and write only explicitly requested outputs
+- Safety boundaries: RF functionality remains receive/analyze-only and does not add transmission logic
+- Composable programs: each executable has one focused responsibility
+
+For the full update index and future expansion plan, see [`docs/C_UPDATES_AND_FEATURES.md`](docs/C_UPDATES_AND_FEATURES.md).
+
+---
+
+## Recommended validation workflow
+
+Compile with strict warnings during development:
+
+```bash
+gcc -std=c11 -Wall -Wextra -Wpedantic -O2 \
+  -I c \
+  -o vulture_cli \
+  c/vulture_cli.c c/vulture_core.c -lm
+```
+
+Recommended validation checklist:
+
+```bash
+make -C c clean
+make -C c
+./vulture_cli status
+./vulture_cli demo
+./vulture_cli analyze c/sample_signal.txt
+./vulture_rf_analysis 1000000000 10
+./vulture_hash_engine c/README.md
+```
+
+For memory-safety testing where available:
+
+```bash
+gcc -std=c11 -Wall -Wextra -g -fsanitize=address,undefined \
+  -I c -o vulture_cli_sanitized \
+  c/vulture_cli.c c/vulture_core.c -lm
+```
+
+This remains a strong development pattern because it catches memory issues early, preserves determinism, and makes the native layer easier to maintain.
+
+---
+
+## Extra ecosystem references and context
+
+The VULTURE C layer is not isolated from the wider ecosystem of public tooling and package repositories that include radio and SDR-related projects, but the repository itself remains intentionally conservative. Public package repositories are useful as references for tooling discovery and ecosystem awareness; they are not part of the VULTURE implementation.
+
+The following are public references frequently used by users exploring radio and SDR-related packages in broader Linux security and radio communities:
+
+- BlackArch radio page: https://blackarch.org/radio.html
+- BlackArch package build repository: https://github.com/BlackArch/blackarch-pkgbuilds
+- Pentoo official overlay: https://github.com/pentoo/pentoo-overlay
+
+These links are relevant as ecosystem references only. They do not change VULTURE’s core design or safety model. The project continues to remain a local, deterministic, receive-only analysis toolkit with explicit limits on what it does and how it behaves.
+
+This distinction matters. A software ecosystem may contain many tools for radio work, but VULTURE remains intentionally narrow and safety-oriented. We do not treat the library as a general-purpose scanning or offensive exploitation system. Instead, the code is built around reproducible local analysis and documented intent.
 
 ---
 
@@ -233,25 +428,24 @@ These are intentionally kept simple and explicit. They do not add remote connect
 
 ---
 
-## Recommended validation workflow
+## Future roadmap
 
-```bash
-make -C c clean
-make -C c
-./vulture_cli status
-./vulture_cli demo
-./vulture_cli analyze c/sample_signal.txt
-./vulture_rf_analysis 1000000000 10
-./vulture_hash_engine c/README.md
-```
+The native layer is deliberately designed to be extended in a controlled way. Planned extensions can be added as independent modules:
 
-For stricter runtime validation when available:
+1. bounded streaming statistics
+2. structured report serialization
+3. benchmark and profiling harnesses
+4. reusable parser utilities
+5. test vectors for hashing and numerical analysis
+6. optional language adapters with explicit input/output contracts
+7. improved IQ file validation and variance diagnostics
+8. richer windowing and spectral metrics
+9. local sample provenance metadata
+10. integration with other deterministic offline toolchains
 
-```bash
-gcc -std=c11 -Wall -Wextra -Wpedantic -g -fsanitize=address,undefined \
-  -I c -o vulture_cli_sanitized \
-  c/vulture_cli.c c/vulture_core.c -lm
-```
+New features should remain local, reviewable, dependency-light, and compatible with the existing VULTURE safety model.
+
+The roadmap intentionally avoids broad, implicit, or opaquely automatic behaviors. This is a core engineering principle of the C layer.
 
 ---
 
@@ -260,6 +454,16 @@ gcc -std=c11 -Wall -Wextra -Wpedantic -g -fsanitize=address,undefined \
 The C layer is a disciplined extension of VULTURE: it accepts explicit local inputs, performs bounded offline analytics, and emits clear, reproducible reports. Its purpose is to improve performance and clarity where C is a good fit, without introducing broad, unsafe, or implicit operational behavior.
 
 The layer is intentionally conservative, modular, and easy to review.
+
+It is built to serve a clear purpose:
+
+- analyze what is supplied
+- emit reproducible outputs
+- keep the code honest and inspectable
+- remain local and deterministic
+- preserve a strong boundary between analysis and control
+
+This is the conceptual center of the C section and the reason it exists as a distinct project layer.
 
 ---
 
