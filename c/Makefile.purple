@@ -1,0 +1,11 @@
+CC ?= gcc
+CFLAGS ?= -std=c11 -O2 -Wall -Wextra -Wpedantic
+CPPFLAGS ?= -I.
+ROOT := ..
+VULTURE_PURPLE := $(ROOT)/vulture-purple
+.PHONY: purple clean-purple
+purple: $(VULTURE_PURPLE)
+$(VULTURE_PURPLE): vulture_purple_cli.c vulture_purple.c vulture_purple.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ vulture_purple_cli.c vulture_purple.c -lm
+clean-purple:
+	rm -f $(VULTURE_PURPLE)
