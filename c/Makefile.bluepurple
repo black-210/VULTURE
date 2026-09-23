@@ -1,0 +1,15 @@
+# This is a defensive blue/purple forensic layer.
+# It operates only on supplied local IQ/TXT files and explicit metadata.
+# It does not target people or systems. It does not scan networks, open SDRs automatically,
+# or transmit RF. All scoring is local, reviewable, and evidence-driven.
+
+all: vulture_blue_purple_cli vulture_forensic_blue_purple
+
+vulture_blue_purple_cli: vulture_blue_purple_cli.c vulture_forensic_physics.c vulture_blue_team.c vulture_purple_forensics.c vulture_sdr.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ vulture_blue_purple_cli.c vulture_forensic_physics.c vulture_blue_team.c vulture_purple_forensics.c vulture_sdr.c -lm
+
+vulture_forensic_blue_purple: vulture_forensic_blue_purple.c vulture_forensic_physics.c vulture_blue_team.c vulture_purple_forensics.c vulture_sdr.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ vulture_forensic_blue_purple.c vulture_forensic_physics.c vulture_blue_team.c vulture_purple_forensics.c vulture_sdr.c -lm
+
+clean:
+	rm -f vulture_blue_purple_cli vulture_forensic_blue_purple
