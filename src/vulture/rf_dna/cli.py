@@ -1,8 +1,7 @@
-"""Receive-only SDR boundary.
+"""Receive-only SDR and canonical .iq boundary.
 
-The adapter accepts local files and an optional explicitly configured SoapySDR
-backend. It intentionally exposes no transmit, tuning-scan, or network-probe
-operations. Hardware integration remains optional and environment-dependent.
+Synthetic generation is intentionally not part of this module. Offline input
+must be a canonical little-endian complex64 .iq capture with a JSON sidecar.
 """
 from __future__ import annotations
 
@@ -11,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 
+from vulture.sdr_iq_framework.partition import read_iq_file, write_iq_file
+
 
 @dataclass(frozen=True)
 class ReceiveConfig:
@@ -18,19 +19,21 @@ class ReceiveConfig:
     center_frequency: float
     gain: float | None = None
     device_args: str | None = None
+    channel: int = 0
 
 
 class ReceiveOnlySource:
-    """Read IQ from a local NPZ file or an approved attached receiver."""
+    """Read canonical .iq captures or an explicitly configured RX device."""
 
     def __init__(self, config: ReceiveConfig):
         if config.sample_rate <= 0 or config.center_frequency < 0:
             raise ValueError("invalid receive configuration")
+        if config.channel < 0:
+            raise ValueError("channel must be non-negative")
         self.config = config
 
     @staticmethod
     def is_soapysdr_available() -> bool:
-        """Check if an explicit receive backend is installed."""
         try:
             import SoapySDR  # type: ignore
             return True
@@ -38,54 +41,62 @@ class ReceiveOnlySource:
             return False
 
     @staticmethod
-    def from_npz(path: str | Path) -> tuple[np.ndarray, float]:
-        """Load a local simulator/recording capture without network access."""
-        with np.load(path) as data:
-            if "iq" not in data:
-                raise ValueError("NPZ must contain an 'iq' array")
-            iq = np.asarray(data["iq"], dtype=np.complex64)
-            rate = float(data["sample_rate"]) if "sample_rate" in data else 0.0
-        if iq.size == 0 or rate <= 0:
-            raise ValueError("capture must contain samples and a positive sample_rate")
+    def from_iq(path: str | Path, sample_rate: float | None = None) -> tuple[np.ndarray, float]:
+        iq, rate = read_iq_file(path, sample_rate)
+        if rate is None:
+            raise ValueError(".iq capture requires a positive sample rate or .json sidecar")
         return iq, rate
 
     @staticmethod
+    def from_npz(path: str | Path) -> tuple[np.ndarray, float]:
+        raise RuntimeError("NPZ fixtures are disabled; use a canonical .iq capture")
+
+    @staticmethod
     def from_file_or_sdr(path: str | Path | None = None, config: ReceiveConfig | None = None):
-        """Prefer local IQ fixtures and fail cleanly without an SDR backend."""
         if path is not None:
-            return ReceiveOnlySource.from_npz(path)
-
+            if Path(path).suffix.lower() != ".iq":
+                raise ValueError("input must be a canonical .iq capture")
+            return ReceiveOnlySource.from_iq(path)
         if config is None:
-            raise ValueError("provide --input or a configured SDR receive config")
-
-        if not ReceiveOnlySource.is_soapysdr_available():
-            raise RuntimeError(
-                "No SDR backend is installed. VULTURE remains in offline mode; "
-                "use a local .npz capture or an approved offline IQ file."
-            )
-
+            raise ValueError("provide --input capture.iq or a configured SDR receive config")
         return ReceiveOnlySource(config)
 
     def open_soapysdr(self):  # pragma: no cover - requires optional hardware
-        """Open an explicitly configured SoapySDR RX stream, if installed.
-
-        This method is opt-in and receive-only. It does not discover devices or
-        transmit. Deployments must enforce their own allowlist and permissions.
-        """
         if not self.config.device_args:
             raise ValueError("device_args must be explicitly configured")
         if not self.is_soapysdr_available():
-            raise RuntimeError("SoapySDR runtime is unavailable; offline mode is required")
-        try:
-            import SoapySDR  # type: ignore
-        except ImportError as exc:
-            raise RuntimeError("install the approved SoapySDR Python bindings first") from exc
-
+            raise RuntimeError("SoapySDR runtime is unavailable")
+        import SoapySDR  # type: ignore
         device = SoapySDR.Device(self.config.device_args)
-        device.setSampleRate(SoapySDR.SOAPY_SDR_RX, 0, self.config.sample_rate)
-        device.setFrequency(SoapySDR.SOAPY_SDR_RX, 0, self.config.center_frequency)
+        direction = SoapySDR.SOAPY_SDR_RX
+        channel = self.config.channel
+        device.setSampleRate(direction, channel, self.config.sample_rate)
+        device.setFrequency(direction, channel, self.config.center_frequency)
         if self.config.gain is not None:
-            device.setGain(SoapySDR.SOAPY_SDR_RX, 0, self.config.gain)
-        stream = device.setupStream(SoapySDR.SOAPY_SDR_RX, SoapySDR.SOAPY_SDR_CF32)
+            device.setGain(direction, channel, self.config.gain)
+        stream = device.setupStream(direction, SoapySDR.SOAPY_SDR_CF32, [channel])
         device.activateStream(stream)
         return device, stream
+
+    def capture_to_iq(self, path: str | Path, sample_count: int, chunk_size: int = 16_384) -> int:
+        """Capture receive-only samples from the configured SDR into .iq."""
+        if sample_count <= 0 or chunk_size <= 0:
+            raise ValueError("sample_count and chunk_size must be positive")
+        import SoapySDR  # type: ignore
+        device, stream = self.open_soapysdr()
+        samples: list[np.ndarray] = []
+        remaining = sample_count
+        try:
+            while remaining:
+                count = min(chunk_size, remaining)
+                buffer = np.empty(count, dtype=np.complex64)
+                result = device.readStream(stream, [buffer], count)
+                if result.ret <= 0:
+                    raise RuntimeError(f"SDR read failed with code {result.ret}")
+                samples.append(buffer[:result.ret].copy())
+                remaining -= result.ret
+        finally:
+            device.deactivateStream(stream)
+            device.closeStream(stream)
+        write_iq_file(path, np.concatenate(samples), self.config.sample_rate)
+        return sample_count
