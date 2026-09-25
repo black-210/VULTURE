@@ -15,7 +15,9 @@ import click
 from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
 from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
 from vulture.forensics import audit_chemistry, audit_mathematics, audit_physics, audit_protocol
+from vulture.iq_cli import iq
 from vulture.lab_cli import lab_cli
+from vulture.offline_tools.cli import offline_cli
 
 
 @click.group(invoke_without_command=True)
@@ -29,7 +31,9 @@ def cli(ctx: click.Context, interactive: bool) -> None:
         click.echo(ctx.get_help())
 
 
+cli.add_command(iq, name="iq")
 cli.add_command(lab_cli, name="lab")
+cli.add_command(offline_cli, name="offline")
 
 
 @cli.command()
@@ -262,6 +266,8 @@ class InteractiveShell:
             click.echo("  rf-dna report --input capture.npz")
             click.echo("  rf-dna quantum --profile multi-tone")
             click.echo("  rf-dna backends")
+            click.echo("  iq --help")
+            click.echo("  offline --help")
             click.echo("  chemical-rf nmr --nucleus 1H --field-t 7")
             click.echo("  forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
             click.echo("  forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
