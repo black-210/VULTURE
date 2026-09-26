@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import json
 import shlex
+from pathlib import Path
 
 import click
+import numpy as np
 
-from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
 from vulture.forensics import audit_chemistry, audit_mathematics, audit_physics, audit_protocol
 from vulture.lab_cli import lab_cli
 from vulture.offline_tools.cli import offline_cli
@@ -44,8 +45,10 @@ def info() -> None:
     click.echo("Science: chemistry • physics • mathematics • RF")
     click.echo("Forensics: offline audit of supplied evidence only")
     click.echo("RF-DNA: vulture rf-dna --help")
+    click.echo("Chemical-RF: vulture chemical-rf --help")
     click.echo("IQ: vulture iq --help")
     click.echo("Offline analysis: vulture offline --help")
+    click.echo("Lab: vulture lab --help")
     click.echo("Interactive: vulture --interactive")
 
 
@@ -64,31 +67,142 @@ def status() -> None:
     click.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
-@cli.command("rf-wavelength")
+@cli.group("chemical-rf")
+def chemical_rf() -> None:
+    """Chemistry and RF analysis commands operating on NPZ archives."""
+
+
+@chemical_rf.command("nmr")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--nucleus", default="1H", show_default=True)
+@click.option("--field-t", default=7.0, type=float, show_default=True)
+def chemical_rf_nmr(input_path: str, nucleus: str, field_t: float) -> None:
+    """Calculate Larmor frequency from NPZ archive metadata and store result."""
+    from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
+    from vulture.sdr_iq_framework.partition import read_iq_file
+    
+    npz_file = Path(input_path)
+    if not npz_file.exists():
+        raise FileNotFoundError(f"NPZ file not found: {input_path}")
+    
+    # Load NPZ and extract sample rate if available
+    data = np.load(npz_file)
+    sample_rate = float(data.get("sample_rate", 1_000_000))
+    
+    # Calculate Larmor frequency
+    freq_hz = larmor_frequency_hz(nucleus, field_t)
+    
+    result = {
+        "input": str(input_path),
+        "nucleus": nucleus,
+        "field_t": field_t,
+        "frequency_hz": freq_hz,
+        "captured_sample_rate": sample_rate
+    }
+    click.echo(json.dumps(result, indent=2, sort_keys=True))
+
+
+@chemical_rf.command("material")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--epsilon-r", required=True, type=float)
+@click.option("--conductivity", default=0.0, type=float, show_default=True)
 @click.option("--frequency-hz", required=True, type=float)
-def rf_wavelength(frequency_hz: float) -> None:
-    """Calculate wavelength from frequency."""
-    click.echo(json.dumps({"frequency_hz": frequency_hz, "wavelength_m": wavelength_m(frequency_hz)}, indent=2))
+@click.option("--length-m", required=True, type=float)
+def chemical_rf_material(input_path: str, epsilon_r: float, conductivity: float, frequency_hz: float, length_m: float) -> None:
+    """Analyze material properties against NPZ capture metadata."""
+    from vulture.chemical_rf.materials import complex_permittivity, dielectric_resonance_frequency
+    
+    npz_file = Path(input_path)
+    if not npz_file.exists():
+        raise FileNotFoundError(f"NPZ file not found: {input_path}")
+    
+    # Load NPZ
+    data = np.load(npz_file)
+    sample_rate = float(data.get("sample_rate", 1_000_000))
+    
+    # Calculate material properties
+    epsilon = complex_permittivity(epsilon_r, conductivity, frequency_hz)
+    resonance = dielectric_resonance_frequency(epsilon_r, length_m)
+    
+    result = {
+        "input": str(input_path),
+        "captured_sample_rate": sample_rate,
+        "permittivity": {
+            "real": epsilon.real,
+            "imag": epsilon.imag
+        },
+        "resonance_hz": resonance,
+        "material": {
+            "epsilon_r": epsilon_r,
+            "conductivity": conductivity,
+            "length_m": length_m
+        }
+    }
+    click.echo(json.dumps(result, indent=2, sort_keys=True))
 
 
-@cli.command("rf-path-loss")
+@chemical_rf.command("physics")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
 @click.option("--frequency-hz", required=True, type=float)
 @click.option("--distance-m", required=True, type=float)
-def rf_path_loss(frequency_hz: float, distance_m: float) -> None:
-    """Calculate free-space path loss for supplied parameters only."""
-    click.echo(json.dumps({"frequency_hz": frequency_hz, "distance_m": distance_m, "path_loss_db": free_space_path_loss_db(frequency_hz, distance_m)}, indent=2))
+def chemical_rf_physics(input_path: str, frequency_hz: float, distance_m: float) -> None:
+    """Calculate RF physics properties with NPZ capture context."""
+    from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
+    
+    npz_file = Path(input_path)
+    if not npz_file.exists():
+        raise FileNotFoundError(f"NPZ file not found: {input_path}")
+    
+    # Load NPZ
+    data = np.load(npz_file)
+    sample_rate = float(data.get("sample_rate", 1_000_000))
+    
+    # Calculate RF physics
+    wavelength = wavelength_m(frequency_hz)
+    path_loss = free_space_path_loss_db(frequency_hz, distance_m)
+    
+    result = {
+        "input": str(input_path),
+        "captured_sample_rate": sample_rate,
+        "frequency_hz": frequency_hz,
+        "distance_m": distance_m,
+        "wavelength_m": wavelength,
+        "path_loss_db": path_loss
+    }
+    click.echo(json.dumps(result, indent=2, sort_keys=True))
 
 
-@cli.command("chemical-rf")
-@click.argument("args", nargs=-1, type=click.UNPROCESSED)
-def chemical_rf(args: tuple[str, ...]) -> None:
-    """Route to the Chemical-RF command group."""
-    from vulture.chemical_rf.cli import chemical_rf_cli
-
-    if not args:
-        click.echo(chemical_rf_cli.get_help(click.Context(chemical_rf_cli)))
-        return
-    chemical_rf_cli.main(list(args), standalone_mode=False)
+@chemical_rf.command("report")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--sample-id", required=True)
+@click.option("--real-ohm", required=True, type=float)
+@click.option("--imag-ohm", required=True, type=float)
+def chemical_rf_report(input_path: str, sample_id: str, real_ohm: float, imag_ohm: float) -> None:
+    """Create impedance analysis report linked to NPZ capture."""
+    from vulture.chemical_rf.pipeline import ChemicalRFAnalysisPipeline
+    
+    npz_file = Path(input_path)
+    if not npz_file.exists():
+        raise FileNotFoundError(f"NPZ file not found: {input_path}")
+    
+    # Load NPZ
+    data = np.load(npz_file)
+    sample_rate = float(data.get("sample_rate", 1_000_000))
+    frequency_hz = float(data.get("frequency_hz", 2_400_000_000))
+    
+    # Generate report
+    pipeline = ChemicalRFAnalysisPipeline()
+    analysis = pipeline.analyze_impedance(
+        sample_id,
+        complex(real_ohm, imag_ohm),
+        {"frequency_hz": frequency_hz, "source": str(input_path)}
+    )
+    
+    result = analysis.to_dict()
+    result["input"] = str(input_path)
+    result["captured_sample_rate"] = sample_rate
+    
+    click.echo(json.dumps(result, indent=2, sort_keys=True))
 
 
 @cli.group("rf-dna")
@@ -239,7 +353,7 @@ class InteractiveShell:
         click.echo("══════════════════════════════════════════════════════════")
         click.echo("🦅 VULTURE — Offline Scientific Intelligence Platform")
         click.echo("chemistry • physics • mathematics • RF • forensic audit")
-        click.echo("Type: help | status | rf-dna status | forensic physics | exit")
+        click.echo("Type: help | status | rf-dna status | chemical-rf nmr | exit")
         click.echo("══════════════════════════════════════════════════════════")
 
     def run(self) -> None:
@@ -268,8 +382,6 @@ class InteractiveShell:
             click.echo("  status")
             click.echo("  iq convert capture.iq capture.npz")
             click.echo("  offline analyze values.csv --sample-rate 1000000")
-            click.echo("  rf-wavelength --frequency-hz 1e9")
-            click.echo("  rf-path-loss --frequency-hz 2.4e9 --distance-m 10")
             click.echo("  rf-dna status")
             click.echo("  rf-dna simulate --profile multi-tone --duration 2 --sample-rate 1000000 --output capture.npz")
             click.echo("  rf-dna fingerprint --input capture.npz --label lab-device-01")
@@ -277,7 +389,10 @@ class InteractiveShell:
             click.echo("  rf-dna report --input capture.npz")
             click.echo("  rf-dna quantum --profile multi-tone")
             click.echo("  rf-dna backends")
-            click.echo("  chemical-rf nmr --nucleus 1H --field-t 7")
+            click.echo("  chemical-rf nmr --input capture.npz --nucleus 1H --field-t 7")
+            click.echo("  chemical-rf material --input capture.npz --epsilon-r 4.2 --frequency-hz 2.4e9 --length-m 0.1")
+            click.echo("  chemical-rf physics --input capture.npz --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("  chemical-rf report --input capture.npz --sample-id S-001 --real-ohm 50 --imag-ohm 2.5")
             click.echo("  forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
             click.echo("  forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
             click.echo("  forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
