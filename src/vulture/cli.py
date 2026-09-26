@@ -72,8 +72,10 @@ def info() -> None:
     click.echo("🦅 VULTURE")
     click.echo("Science: chemistry • physics • mathematics • RF")
     click.echo("Forensics: offline audit of supplied evidence only")
+    click.echo("Formats supported: .npz, .iq (all analysis commands)")
     click.echo("RF-DNA: vulture rf-dna --help")
     click.echo("Chemical-RF: vulture chemical-rf --help")
+    click.echo("Forensic: vulture forensic --help")
     click.echo("IQ: vulture iq --help (convert .iq ↔ .npz)")
     click.echo("Offline analysis: vulture offline --help")
     click.echo("Lab: vulture lab --help")
@@ -91,7 +93,8 @@ def status() -> None:
         "rf_transmit": "disabled",
         "analysis": "local-only",
         "rf_dna_command": "vulture rf-dna",
-        "capture_formats": ["npz", "iq"]
+        "capture_formats": ["npz", "iq"],
+        "forensic_formats": ["npz", "iq"]
     }
     click.echo(json.dumps(payload, indent=2, sort_keys=True))
 
@@ -286,10 +289,11 @@ def rf_dna_backends() -> None:
 
 @cli.group("forensic")
 def forensic() -> None:
-    """Offline evidence audit commands for supplied local data."""
+    """Offline evidence audit commands supporting NPZ and IQ capture files."""
 
 
 @forensic.command("physics")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
 @click.option("--frequency-hz", required=True, type=float)
@@ -297,59 +301,158 @@ def forensic() -> None:
 @click.option("--bandwidth-hz", type=float, default=None)
 @click.option("--output", type=click.Path(dir_okay=False), default=None)
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_physics(case_id: str, subject: str, frequency_hz: float, distance_m: float, bandwidth_hz: float | None, output: str | None, fmt: str) -> None:
-    """Audit local physical measurement metadata."""
+def forensic_physics(input_path: str | None, case_id: str, subject: str, frequency_hz: float, distance_m: float, bandwidth_hz: float | None, output: str | None, fmt: str) -> None:
+    """Audit local physical measurement metadata linked to capture file (NPZ/IQ optional)."""
     from vulture.forensics import write_report
+    
+    # Load capture if provided
+    capture_info = {}
+    if input_path:
+        samples, sample_rate = _load_capture(input_path)
+        capture_info = {
+            "capture_input": str(input_path),
+            "capture_format": Path(input_path).suffix.lower().lstrip("."),
+            "capture_samples": int(samples.size),
+            "capture_sample_rate": sample_rate
+        }
+    
     report = audit_physics(case_id, subject, frequency_hz=frequency_hz, distance_m=distance_m, bandwidth_hz=bandwidth_hz)
+    
     if output:
         write_report(report, output, fmt)
-    click.echo(report.to_json() if fmt == "json" else report.to_text())
+    
+    # Enrich output with capture info
+    output_text = report.to_json() if fmt == "json" else report.to_text()
+    if capture_info and fmt == "json":
+        try:
+            data = json.loads(output_text)
+            data.update(capture_info)
+            output_text = json.dumps(data, indent=2, sort_keys=True)
+        except:
+            pass
+    
+    click.echo(output_text)
 
 
 @forensic.command("chemistry")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
 @click.option("--compounds-json", required=True)
 @click.option("--output", type=click.Path(dir_okay=False), default=None)
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_chemistry(case_id: str, subject: str, compounds_json: str, output: str | None, fmt: str) -> None:
-    """Audit local compound composition structures."""
+def forensic_chemistry(input_path: str | None, case_id: str, subject: str, compounds_json: str, output: str | None, fmt: str) -> None:
+    """Audit local compound composition linked to capture file (NPZ/IQ optional)."""
     from vulture.forensics import write_report
+    
+    # Load capture if provided
+    capture_info = {}
+    if input_path:
+        samples, sample_rate = _load_capture(input_path)
+        capture_info = {
+            "capture_input": str(input_path),
+            "capture_format": Path(input_path).suffix.lower().lstrip("."),
+            "capture_samples": int(samples.size),
+            "capture_sample_rate": sample_rate
+        }
+    
     report = audit_chemistry(case_id, subject, json.loads(compounds_json))
+    
     if output:
         write_report(report, output, fmt)
-    click.echo(report.to_json() if fmt == "json" else report.to_text())
+    
+    # Enrich output with capture info
+    output_text = report.to_json() if fmt == "json" else report.to_text()
+    if capture_info and fmt == "json":
+        try:
+            data = json.loads(output_text)
+            data.update(capture_info)
+            output_text = json.dumps(data, indent=2, sort_keys=True)
+        except:
+            pass
+    
+    click.echo(output_text)
 
 
 @forensic.command("math")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
 @click.option("--matrix-json", required=True)
 @click.option("--vector-json", required=True)
 @click.option("--output", type=click.Path(dir_okay=False), default=None)
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_math(case_id: str, subject: str, matrix_json: str, vector_json: str, output: str | None, fmt: str) -> None:
-    """Audit a local linear system."""
+def forensic_math(input_path: str | None, case_id: str, subject: str, matrix_json: str, vector_json: str, output: str | None, fmt: str) -> None:
+    """Audit local linear system linked to capture file (NPZ/IQ optional)."""
     from vulture.forensics import write_report
+    
+    # Load capture if provided
+    capture_info = {}
+    if input_path:
+        samples, sample_rate = _load_capture(input_path)
+        capture_info = {
+            "capture_input": str(input_path),
+            "capture_format": Path(input_path).suffix.lower().lstrip("."),
+            "capture_samples": int(samples.size),
+            "capture_sample_rate": sample_rate
+        }
+    
     report = audit_mathematics(case_id, subject, json.loads(matrix_json), json.loads(vector_json))
+    
     if output:
         write_report(report, output, fmt)
-    click.echo(report.to_json() if fmt == "json" else report.to_text())
+    
+    # Enrich output with capture info
+    output_text = report.to_json() if fmt == "json" else report.to_text()
+    if capture_info and fmt == "json":
+        try:
+            data = json.loads(output_text)
+            data.update(capture_info)
+            output_text = json.dumps(data, indent=2, sort_keys=True)
+        except:
+            pass
+    
+    click.echo(output_text)
 
 
 @forensic.command("protocol")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
 @click.option("--frames-json", required=True)
 @click.option("--output", type=click.Path(dir_okay=False), default=None)
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_protocol(case_id: str, subject: str, frames_json: str, output: str | None, fmt: str) -> None:
-    """Audit supplied protocol/frame metadata without network access."""
+def forensic_protocol(input_path: str | None, case_id: str, subject: str, frames_json: str, output: str | None, fmt: str) -> None:
+    """Audit protocol metadata linked to capture file (NPZ/IQ optional)."""
     from vulture.forensics import write_report
+    
+    # Load capture if provided
+    capture_info = {}
+    if input_path:
+        samples, sample_rate = _load_capture(input_path)
+        capture_info = {
+            "capture_input": str(input_path),
+            "capture_format": Path(input_path).suffix.lower().lstrip("."),
+            "capture_samples": int(samples.size),
+            "capture_sample_rate": sample_rate
+        }
+    
     report = audit_protocol(case_id, subject, json.loads(frames_json))
+    
     if output:
         write_report(report, output, fmt)
-    click.echo(report.to_json() if fmt == "json" else report.to_text())
+    
+    # Enrich output with capture info
+    output_text = report.to_json() if fmt == "json" else report.to_text()
+    if capture_info and fmt == "json":
+        try:
+            data = json.loads(output_text)
+            data.update(capture_info)
+            output_text = json.dumps(data, indent=2, sort_keys=True)
+        except:
+            pass
+    
+    click.echo(output_text)
 
 
 class InteractiveShell:
@@ -363,8 +466,8 @@ class InteractiveShell:
     def banner() -> None:
         click.echo("══════════════════════════════════════════════════════════")
         click.echo("🦅 VULTURE — Offline Scientific Intelligence Platform")
-        click.echo("Supports .iq and .npz captures • chemistry • physics • RF")
-        click.echo("Type: help | status | chemical-rf nmr | exit")
+        click.echo("Supports .iq and .npz • chemistry • physics • forensics")
+        click.echo("Type: help | status | forensic physics | exit")
         click.echo("══════════════════════════════════════════════════════════")
 
     def run(self) -> None:
@@ -398,8 +501,16 @@ class InteractiveShell:
             click.echo("    chemical-rf nmr --input capture.npz --nucleus 1H --field-t 7")
             click.echo("    chemical-rf nmr --input capture.iq --nucleus 1H --field-t 7")
             click.echo("    chemical-rf material --input capture.npz --epsilon-r 4.2 --frequency-hz 2.4e9 --length-m 0.1")
-            click.echo("    chemical-rf physics --input capture.npz --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("    chemical-rf physics --input capture.iq --frequency-hz 2.4e9 --distance-m 10")
             click.echo("    chemical-rf report --input capture.npz --sample-id S-001 --real-ohm 50 --imag-ohm 2.5")
+            click.echo("")
+            click.echo("  Forensic (supports .npz and .iq optional):")
+            click.echo("    forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("    forensic physics --input capture.npz --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("    forensic physics --input capture.iq --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
+            click.echo("    forensic chemistry --input capture.npz --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
+            click.echo("    forensic math --input capture.iq --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
+            click.echo("    forensic protocol --input capture.npz --case-id C-004 --subject frame --frames-json '[{\"length\":4}]'")
             click.echo("")
             click.echo("  RF-DNA (NPZ only):")
             click.echo("    rf-dna status")
@@ -409,12 +520,6 @@ class InteractiveShell:
             click.echo("    rf-dna report --input capture.npz")
             click.echo("    rf-dna quantum --profile multi-tone")
             click.echo("    rf-dna backends")
-            click.echo("")
-            click.echo("  Forensic (local data only):")
-            click.echo("    forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("    forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
-            click.echo("    forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
-            click.echo("    forensic protocol --case-id C-004 --subject frame --frames-json '[{\"length\":4,\"declared_length\":5}]'")
             click.echo("")
             click.echo("  Lab (simulations):")
             click.echo("    lab attack-sim --scenario spoofing")
