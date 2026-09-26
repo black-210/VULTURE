@@ -40,7 +40,35 @@ def _load_capture(path: str) -> tuple[np.ndarray, float]:
         from vulture.sdr_iq_framework.partition import read_iq_file
         samples, sample_rate = read_iq_file(file_path)
         if sample_rate is None:
-            raise ValueError(f".iq file requires sample rate in .json sidecar: {path}")
+            raise ValueError(
+                f"""Missing IQ sample-rate metadata
+
+The input file:
+  {path}
+
+requires a JSON sidecar:
+  {Path(path).with_suffix(".json")}
+
+Example:
+  {{
+    "sample_rate": 1000000.0
+  }}
+
+Create it:
+  printf '{{"sample_rate":1000000.0}}\\n' > {Path(path).with_suffix(".json")}
+
+Then run:
+  vulture chemical-rf material \\
+    --input {path} \\
+    --epsilon-r 4.2 \\
+    --conductivity 0.01 \\
+    --frequency-hz 2.4e9 \\
+    --length-m 0.1
+
+Why?
+The IQ samples do not contain their sample rate.
+VULTURE requires it to interpret the capture correctly."""
+            )
         return samples, sample_rate
     
     else:
