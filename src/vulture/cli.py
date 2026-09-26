@@ -8,14 +8,14 @@ from __future__ import annotations
 
 import json
 import shlex
-from typing import Any
 
 import click
 
 from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
-from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
 from vulture.forensics import audit_chemistry, audit_mathematics, audit_physics, audit_protocol
 from vulture.lab_cli import lab_cli
+from vulture.offline_tools.cli import offline_cli
+from vulture.iq_cli import iq
 
 
 @click.group(invoke_without_command=True)
@@ -29,7 +29,12 @@ def cli(ctx: click.Context, interactive: bool) -> None:
         click.echo(ctx.get_help())
 
 
+# Register every maintained command group in the canonical console entry point.
+# These groups previously existed as independent Click modules but were not
+# reachable through ``vulture``.
 cli.add_command(lab_cli, name="lab")
+cli.add_command(iq, name="iq")
+cli.add_command(offline_cli, name="offline")
 
 
 @cli.command()
@@ -39,6 +44,8 @@ def info() -> None:
     click.echo("Science: chemistry • physics • mathematics • RF")
     click.echo("Forensics: offline audit of supplied evidence only")
     click.echo("RF-DNA: vulture rf-dna --help")
+    click.echo("IQ: vulture iq --help")
+    click.echo("Offline analysis: vulture offline --help")
     click.echo("Interactive: vulture --interactive")
 
 
@@ -167,9 +174,9 @@ def forensic() -> None:
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
 def forensic_physics(case_id: str, subject: str, frequency_hz: float, distance_m: float, bandwidth_hz: float | None, output: str | None, fmt: str) -> None:
     """Audit local physical measurement metadata."""
+    from vulture.forensics import write_report
     report = audit_physics(case_id, subject, frequency_hz=frequency_hz, distance_m=distance_m, bandwidth_hz=bandwidth_hz)
     if output:
-        from vulture.forensics import write_report
         write_report(report, output, fmt)
     click.echo(report.to_json() if fmt == "json" else report.to_text())
 
@@ -178,11 +185,15 @@ def forensic_physics(case_id: str, subject: str, frequency_hz: float, distance_m
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
 @click.option("--compounds-json", required=True)
-def forensic_chemistry(case_id: str, subject: str, compounds_json: str) -> None:
+@click.option("--output", type=click.Path(dir_okay=False), default=None)
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
+def forensic_chemistry(case_id: str, subject: str, compounds_json: str, output: str | None, fmt: str) -> None:
     """Audit local compound composition structures."""
-    compounds = json.loads(compounds_json)
-    report = audit_chemistry(case_id, subject, compounds)
-    click.echo(report.to_json())
+    from vulture.forensics import write_report
+    report = audit_chemistry(case_id, subject, json.loads(compounds_json))
+    if output:
+        write_report(report, output, fmt)
+    click.echo(report.to_json() if fmt == "json" else report.to_text())
 
 
 @forensic.command("math")
@@ -190,12 +201,15 @@ def forensic_chemistry(case_id: str, subject: str, compounds_json: str) -> None:
 @click.option("--subject", required=True)
 @click.option("--matrix-json", required=True)
 @click.option("--vector-json", required=True)
-def forensic_math(case_id: str, subject: str, matrix_json: str, vector_json: str) -> None:
+@click.option("--output", type=click.Path(dir_okay=False), default=None)
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
+def forensic_math(case_id: str, subject: str, matrix_json: str, vector_json: str, output: str | None, fmt: str) -> None:
     """Audit a local linear system."""
-    matrix = json.loads(matrix_json)
-    vector = json.loads(vector_json)
-    report = audit_mathematics(case_id, subject, matrix, vector)
-    click.echo(report.to_json())
+    from vulture.forensics import write_report
+    report = audit_mathematics(case_id, subject, json.loads(matrix_json), json.loads(vector_json))
+    if output:
+        write_report(report, output, fmt)
+    click.echo(report.to_json() if fmt == "json" else report.to_text())
 
 
 @forensic.command("protocol")
@@ -206,10 +220,9 @@ def forensic_math(case_id: str, subject: str, matrix_json: str, vector_json: str
 @click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
 def forensic_protocol(case_id: str, subject: str, frames_json: str, output: str | None, fmt: str) -> None:
     """Audit supplied protocol/frame metadata without network access."""
-    frames = json.loads(frames_json)
-    report = audit_protocol(case_id, subject, frames)
+    from vulture.forensics import write_report
+    report = audit_protocol(case_id, subject, json.loads(frames_json))
     if output:
-        from vulture.forensics import write_report
         write_report(report, output, fmt)
     click.echo(report.to_json() if fmt == "json" else report.to_text())
 
@@ -253,6 +266,8 @@ class InteractiveShell:
             click.echo("Available commands:")
             click.echo("  info")
             click.echo("  status")
+            click.echo("  iq convert capture.iq capture.npz")
+            click.echo("  offline analyze values.csv --sample-rate 1000000")
             click.echo("  rf-wavelength --frequency-hz 1e9")
             click.echo("  rf-path-loss --frequency-hz 2.4e9 --distance-m 10")
             click.echo("  rf-dna status")
@@ -267,6 +282,8 @@ class InteractiveShell:
             click.echo("  forensic chemistry --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
             click.echo("  forensic math --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
             click.echo("  forensic protocol --case-id C-004 --subject frame --frames-json '[{\"length\":4,\"declared_length\":5}]'")
+            click.echo("  lab attack-sim --scenario spoofing")
+            click.echo("  lab defense-sim --scenario jamming-detection")
             click.echo("  history")
             click.echo("  exit")
             return
