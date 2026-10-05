@@ -45,3 +45,10 @@ def combine_uncertainty(*uncertainties: float) -> float:
     if any(value < 0 for value in uncertainties):
         raise ValueError("uncertainties cannot be negative")
     return float(np.sqrt(np.sum(np.square(uncertainties))))
+def combine_relative_uncertainty(*uncertainties: float) -> float:
+    """Combine independent relative standard uncertainties by root-sum-square."""
+    return combine_uncertainty(*[u * 100 for u in uncertainties])
+def combine_absolute_uncertainty(*uncertainties: float) -> float:
+    """Combine independent absolute standard uncertainties by root-sum-square."""
+    return combine_uncertainty(*[u ** 2 for u in uncertainties])
+

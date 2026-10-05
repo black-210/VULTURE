@@ -35,5 +35,6 @@ int vulture_find_peaks(const VultureSignal *signal, VulturePeakSummary *peaks, d
 void vulture_generate_report(const VultureStats *stats, const VulturePeakSummary *peaks, char *buffer, size_t buffer_len);
 int vulture_hash_file(const char *path, char hex_digest[65]);
 int vulture_hash_buffer(const unsigned char *buffer, size_t length, char hex_digest[65]);
+int vulture_compare_files(const char *path1, const char *path2);
 
 #endif

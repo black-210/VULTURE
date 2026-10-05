@@ -7,3 +7,4 @@ void vulture_iq_series_free(VultureIQSeries *series) {
     series->size = 0;
     series->capacity = 0;
 }
+for 

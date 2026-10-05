@@ -38,3 +38,23 @@ class FeatureEngineering:
         return features
     def extract_features_from_iq(self, iq_data):
         return FeatureEngineering.extract_iq_features(iq_data)
+    def extract_features_from_multiple_signals(self, signals):
+        all_features = {}
+        for idx, signal in enumerate(signals):
+            all_features[f'signal_{idx}'] = self.extract_features(signal)
+        return all_features
+    def extract_features_from_multiple_iq_signals(self, iq_signals):
+        all_features = {}
+        for idx, iq_signal in enumerate(iq_signals):
+            all_features[f'iq_signal_{idx}'] = self.extract_features_from_iq(iq_signal)
+        return all_features
+    def extract_features_with_custom_functions(self, data, custom_functions):
+        features = {}
+        for func in custom_functions:
+            features.update(func(data))
+        return features
+    def extract_features_with_custom_functions_from_iq(self, iq_data, custom_functions):
+        features = {}
+        for func in custom_functions:
+            features.update(func(iq_data))
+        return features

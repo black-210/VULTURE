@@ -13,3 +13,12 @@ class CodeGenerator:
     def optimize_code(self, code):
         prompt = f"Optimize this code: {code}"
         return self.llm.query(prompt)
+    def refactor_code(self, code):
+        prompt = f"Refactor this code: {code}"
+        return self.llm.query(prompt)
+    def format_code(self, code):
+        prompt = f"Format this code: {code}"
+        return self.llm.query(prompt)
+    def lint_code(self, code):
+        prompt = f"Lint this code: {code}"
+        return self.llm.query(prompt)

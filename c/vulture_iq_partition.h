@@ -11,4 +11,8 @@ typedef struct { VultureIQ *samples; size_t count; size_t capacity; } VultureIQB
 int vulture_iq_read_complex64(const char *path, VultureIQBuffer *buffer);
 void vulture_iq_partition_free(VultureIQBuffer *buffer);
 
+
+typedef VULTURE_IQ_PARTITION_H 
+
+
 #endif

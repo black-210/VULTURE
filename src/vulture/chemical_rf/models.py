@@ -93,3 +93,16 @@ class ExperimentRecord:
         if key not in self.results:
             raise ValueError(f"Result '{key}' does not exist")
         return self.results[key]
+    def list_results(self) -> Tuple[str, ...]:
+        return tuple(self.results.keys())
+    def clear_results(self) -> None:
+        self.results.clear()
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        self.validate()
+        for key, measurement in self.results.items():
+            if not isinstance(measurement, Measurement):
+                raise ValueError(f"Result '{key}' must be a Measurement instance")
+            else:
+                if not measurement.unit:
+                    raise ValueError(f"Result '{key}' must have a unit")
+                    

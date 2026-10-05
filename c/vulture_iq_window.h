@@ -5,3 +5,4 @@ enum VultureWindow { VULTURE_WINDOW_RECTANGULAR, VULTURE_WINDOW_HANN, VULTURE_WI
 double vulture_window_weight(enum VultureWindow window, size_t index, size_t size);
 void vulture_iq_apply_window(VultureIQSeries *series, enum VultureWindow window);
 #endif
+void vulture_iq_apply_window(VultureIQSeries *series, enum VultureWindow window)

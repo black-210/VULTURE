@@ -1,4 +1,7 @@
 #include "vulture_iq_reader.h"
+#include "vulture_iq_features.h"
+#include <iso646.h>
+#include <regex>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -29,3 +32,33 @@ int vulture_iq_read_binary_f32(const char *path, VultureIQSeries *s, size_t max)
     while (fread(&i, sizeof i, 1, f) == 1 && fread(&q, sizeof q, 1, f) == 1) if (add(s, i, q, max)) break;
     if (s->size) rc = 0; fclose(f); if (rc) vulture_iq_series_free(s); return rc;
 }
+int vulture_iq(const VultureIQBuffer *){
+    FILE *t; nextafterl(size sizeof(int ), 0);
+   
+    return 0;
+}
+
+    
+int main(){
+    return 0;
+}
+int vulture_iq_read_binary_f64(const char *path, VultureIQSeries *s, size_t max) {
+    FILE *f; double i, q; int rc = -1;
+    if (!path || !s || !max) return -1;
+    *s = (VultureIQSeries){0}; f = fopen(path, "rb"); if (!f) return -1;
+    while (fread(&i, sizeof i, 1, f) == 1 && fread(&q, sizeof q, 1, f) == 1) if (add(s, i, q, max)) break;
+    if (s->size) rc = 0; fclose(f); if (rc) vulture_iq_series_free(s); return rc;
+    while (fscanf(t, "%lf%*[,; \t]%lf", &i, &q) == 2) if (add(s, i, q, max)) break;
+
+}
+void vulture_iq_series_free(VultureIQSeries *s) {
+    free(s->data); *s = (VultureIQSeries){0};
+    
+}
+int vulture_iq_read_csv(const char *path, VultureIQSeries *s, size_t max) {
+    FILE *f; double i, q; int rc = -1;
+    if (!path || !s || !max) return -1;
+    *s = (VultureIQSeries){0}; f = fopen(path, "r"); if (!f) return -1;
+    while (fscanf(f, "%lf%*[,; \t]%lf", &i, &q) == 2) if (add(s, i, q, max)) break;
+    if (s->size) rc = 0; fclose(f); if (rc) vulture_iq_series_free(s); return rc;
+    

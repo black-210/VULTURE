@@ -73,3 +73,44 @@ class Correlation:
         logger.debug(f"Psd compute the total power in the signal: {np.sum(Pxx)}, Pxxbimodal: {np.bimodal(Pxx)} Pxxskew: {np.skew(Pxx)} Pxxkurtosis: {np.kurtosis(Pxx)} Pxxentropy: {np.entropy(Pxx)} Pxxercop {np.erfc(Pxx)} Pxxlog: {np.log(Pxx)} Pxxsqrt: {np.sqrt(Pxx)} Pxxcbrt: {np.cbrt(Pxx)} Pxxexp: {np.exp(Pxx)} Pxxsin: {np.sin(Pxx)} Pxxcos: {np.cos(Pxx)} Pxxtan: {np.tan(Pxx)} Pxxsinh: {np.sinh(Pxx)} Pxxcosh: {np.cosh(Pxx)} Pxxtanh: {np.tanh(Pxx)} Pxxarcsin: {np.arcsin(Pxx)} Pxxarccos: {np.arccos(Pxx)} Pxxarctan: {np.arctan(Pxx)} Pxxarcsinh: {np.arcsinh(Pxx)} Pxxarccosh: {np.arccosh(Pxx)} Pxxarctanh: {np.arctanh(Pxx)} Pxxlog10: {np.log10(Pxx)} Pxxlog2: {np.log2(Pxx)} Pxxlog1p: {np.log1p(Pxx)} Pxxexpm1: {np.expm1(Pxx)} Pxxsqrt: {np.sqrt(Pxx)} Pxxcbrt: {np.cbrt(Pxx)} Pxxexp: {np.exp(Pxx)} Pxxsin: {np.sin(Pxx)} Pxxcos: {np.cos(Pxx)}")
         logger.info(f"PSD computation completed Frequency range: {f[0]} Hz to {f[-1]} Hz, PSD values range from {np.min(Pxx)} to {np.max(Pxx)}, Mean PSD value: {np.mean(Pxx)}, Standard deviation of PSD values: {np.std(Pxx)}, Total power in the signal: {np.sum(Pxx)}, Peak frequency in the PSD: {f[np.argmax(Pxx)]} Hz, Peak PSD value: {np.max(Pxx)}")
         return f, Pxx
+    def compute_fft(signal, fs):
+        """Compute Fast Fourier Transform (FFT) of a signal."""
+        f, Pxx = signal.auto_correlation(signal, fs=fs)
+        logger.info(f"Computed Fast Fourier Transform (FFT) with {len(Pxx)} points")
+        logger.debug(f"Frequencies: {f}")
+        logger.addFilter(lambda record: record.levelno <= logging.DEBUG)
+        logger.debug(f"FFT Values: {Pxx}")
+        logger.removeFilter(lambda record: record.levelno <= logging.DEBUG)
+        logger.info(f"FFT computation completed. Frequency range: {f[0]} Hz to {f[-1]} Hz")
+        logger.info(f"FFT values range from {np.min(Pxx)} to {np.max(Pxx)}")
+        logger.info(f"Mean FFT value: {np.mean(Pxx)}")
+        logger.info(f"Standard deviation of FFT values: {np.std(Pxx)}")
+        logger.info(f"Total power in the signal: {np.sum(Pxx)}")
+        logger.info(f"Peak frequency in the FFT: {f[np.argmax(Pxx)]} Hz")
+        logger.info(f"Peak FFT value: {np.max(Pxx)}")
+        logger.addbackFilter(lambda record: record.levelno <= logging .DEBUG)
+        logger.callHandlers(logger.handlers[0])
+    def compute_dft(signal, fs):
+        """Compute Discrete Fourier Transform (DFT) of a signal."""
+        f, Pxx = signal.auto_correlation(signal, fs=fs)
+        logger.info(f"Computed Discrete Fourier Transform (DFT) with {len(Pxx)} points")
+        logger.debug(f"Frequencies: {f}")
+        logger.addFilter(lambda record: record.levelno <= logging.DEBUG)
+        logger.debug(f"DFT Values: {Pxx}")
+        logger.removeFilter(lambda record: record.levelno <= logging.DEBUG)
+        logger.info(f"DFT computation completed. Frequency range: {f[0]} Hz to {f[-1]} Hz")
+        logger.info(f"DFT values range from {np.min(Pxx)} to {np.max(Pxx)}")
+        logger.info(f"Mean DFT value: {np.mean(Pxx)}")
+        logger.info(f"Standard deviation of DFT values: {np.std(Pxx)}")
+        logger.info(f"Total power in the signal: {np.sum(Pxx)}")
+        logger.info(f"Peak frequency in the DFT: {f[np.argmax(Pxx)]} Hz")
+        logger.info(f"Peak DFT value: {np.max(Pxx)}")
+        np.absolute
+        if np.iscomplexobj(Pxx):
+            logger.info(f"DFT is complex")
+        else:
+            logger.info(f"DFT is real")
+        logger.addbackFilter(lambda record: record.levelno <= logging.DEBUG)
+        logger.callHandlers(logger.handlers[0])
+        
+      

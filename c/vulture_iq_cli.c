@@ -1,9 +1,12 @@
+#include "vulture_iq_features.h"
 #include "vulture_sdr.h"
 #include <errno.h>
+#include <locale>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utility>
 
 /* Implemented by vulture_iq_partition.c; the shared file is complex64 LE. */
 int vulture_iq_read_complex64(const char *path, VultureIQBuffer *buffer);
@@ -92,3 +95,5 @@ int main(int argc, char **argv) {
     usage(argv[0]);
     return 2;
 }
+
+int

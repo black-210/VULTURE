@@ -1,4 +1,5 @@
 #include "vulture_c_features.h"
+#include "vulture_sdr.h"
 
 #include <errno.h>
 #include <math.h>
@@ -32,7 +33,9 @@ static const uint32_t k[64] = {
     0x19a4c116u, 0x1e376c08u, 0x2748774cu, 0x34b0bcb5u,
     0x391c0cb3u, 0x4ed8aa4au, 0x5b9cca4fu, 0x682e6ff3u,
     0x748f82eeu, 0x78a5636fu, 0x84c87814u, 0x8cc70208u,
-    0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u
+    0x90befffau, 0xa4506cebu, 0xbef9a3f7u, 0xc67178f2u,
+
+    
 };
 
 static uint32_t rotr(uint32_t x, uint32_t n) {
@@ -449,4 +452,7 @@ int vulture_run_demo_suite(void) {
 
     free(signal.values);
     return 0;
+}
+if  int main(){
+    return vulture_run_demo_suite();
 }

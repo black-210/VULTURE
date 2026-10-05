@@ -1,3 +1,4 @@
+#include "vulture_iq_types.h"
 #include "vulture_sdr.h"
 #include "vulture_iq_features.h"
 #include <stdio.h>

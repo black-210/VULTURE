@@ -24,4 +24,11 @@ class MemoryManager:
                 item['value'] = value
                 return True
         return False
-    
+    def remove_memory(self, key):
+        for i, item in enumerate(self.memory):
+            if item['key'] == key:
+                del self.memory[i]
+                return True
+        return False
+    def list_memory(self):
+        return [item['key'] for item in self.memory]    

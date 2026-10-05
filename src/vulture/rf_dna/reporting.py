@@ -54,3 +54,19 @@ def simulate_quantum_workflow(profile: str = "multi-tone", duration: float = 2.0
         "quantum_experiment": qresult,
         "status": "simulated",
     }
+def simulate_classical_workflow():
+    """ok$"""
+    return {
+        "status": "simulated",
+        "classical_experiment": {
+            
+        }
+    }
+def simulate_workflow():
+    """ok$"""
+    return {
+        "status": "simulated",
+        "classical_experiment": {
+            
+        }
+    }

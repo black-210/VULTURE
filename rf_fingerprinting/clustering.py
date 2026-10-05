@@ -186,4 +186,12 @@ class Clusterer:
                 unique, inverse = np.unique(labels, return_inverse=True)
                 cluster_features = [features[inverse == i] for i in unique]
                 return cluster_features
+    def get_cluster_centers(self) -> Optional[np.ndarray]:
+        """Get cluster centers.
+        Returns:
+            Array of cluster centers or None if not fitted.
+        """
+        if self.clusterer is None:
+            return None
+            
      

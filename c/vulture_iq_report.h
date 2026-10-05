@@ -5,3 +5,6 @@
 #include <stddef.h>
 int vulture_iq_json(const VultureIQHealth *health, const VulturePeak *peak, char *out, size_t length);
 #endif
+int vulture_iq_report(const char *path, double rate, char *out, size_t length);
+int vulture_iq_report_file(const char *path, double rate, const char *out_path);
+int vulture_iq_report_stdout(const char *path, double rate);

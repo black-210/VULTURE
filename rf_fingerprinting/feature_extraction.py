@@ -193,3 +193,12 @@ class FeatureExtractor:
         self.pca = PCA(n_components=self.n_features)
         self.pca.fit(training_data)
         logger.info(f"PCA fitted with {self.n_features} components")
+    
+    def log_to_console(self, message: str) -> None:
+        """Log a message to the console."""
+        logger.info(message)
+        scipy_logger = setup_logger("scipy")
+        scipy.optimize.show_options(scipy_logger, "minimize")
+
+    def jls_extract_def()        :
+        for 
