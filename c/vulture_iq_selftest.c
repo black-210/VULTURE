@@ -11,3 +11,13 @@ int vulture_iq_selftest_report(void){VultureIQSample x[4]={{1,0},{0,1},{-1,0},{0
 
 int vulture_iq_selftest_all(void){return vulture_iq_selftest()||vulture_iq_selftest_dc()||vulture_iq_selftest_crest()||vulture_iq_selftest_report()?-1:0;}
 int vulture_iq_selftest_all_report(void){char out[256];return vulture_iq_selftest_all()||vulture_iq_selftest_report(out,sizeof(out))||!*out?-1:0;}
+int vulture_iq_selftest_all_report_file(const char *path){char out[256];return vulture_iq_selftest_all()||vulture_iq_selftest_report(out,sizeof(out))||vulture_iq_write_file(path,out,strlen(out))?-1:0;}
+int vulture_iq_selftest_all_report_stdout(void){char out[256];return vulture_iq_selftest_all()||vulture_iq_selftest_report(out,sizeof(out))||puts(out)?-1:0;}
+void vulture_iq_selftest_help(void){puts("usage: vulture_iq_selftest [options]\n"
+"options:\n"
+"  --help|-h   print this help message and exit\n"
+"  --all       run all selftests\n"
+"  --report    print a report of the results of all selftests\n"
+"  --report-file path  write a report of the results of all selftests to a file\n"
+"  --report-stdout  print a report of the results of all selftests to stdout\n"
+);}

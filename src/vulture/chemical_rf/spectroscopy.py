@@ -41,4 +41,5 @@ def spectrum_from_fid(fid: np.ndarray, sample_rate_hz: float) -> Dict[str, np.nd
     windowed = values * np.hanning(values.size)
     spectrum = np.fft.fftshift(np.fft.fft(windowed))
     frequencies = np.fft.fftshift(np.fft.fftfreq(values.size, 1.0 / sample_rate_hz))
-    return {"frequency_hz": frequencies, "magnitude": np.abs(spectrum), "complex_spectrum": spectrum}
+    return {"frequency_hz": frequencies, "magnitude": np.abs(spectrum), "complex_spectrum": spectrum, "phase_rad": 0.0}
+
