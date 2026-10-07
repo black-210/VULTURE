@@ -3,9 +3,10 @@
 ## Table of Contents
 1. [SDR Receiver Commands](#sdr-receiver-commands)
 2. [Forensic Analysis Commands](#forensic-analysis-commands)
-3. [Chemical & Physical Vulnerability Commands](#chemical--physical-vulnerability-commands)
-4. [Report Generation Commands](#report-generation-commands)
+3. [Chemical-RF Commands](#chemical-rf-commands)
+4. [RF-DNA Commands](#rf-dna-commands)
 5. [Interactive Shell Commands](#interactive-shell-commands)
+6. [Common Workflows](#common-workflows)
 
 ---
 
@@ -21,7 +22,7 @@ vulture sdr status
 **Description:**
 Shows the status of all available SDR backends and devices. This command is receive-only and performs no transmission or hardware access.
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "available_devices": {
@@ -74,7 +75,7 @@ Retrieves detailed hardware specifications and capabilities for a specific SDR d
 **Parameters:**
 - `--device`: Device type (rtl-sdr | hackrf | usrp)
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "available": true,
@@ -124,12 +125,12 @@ vulture sdr capture \
 Captures RF samples in receive-only mode and saves to NPZ (NumPy compressed) format with metadata.
 
 **Parameters:**
-- `--device`: SDR device type (rtl-sdr | hackrf)
-- `--frequency-hz`: Center frequency in Hz (e.g., 433.92 MHz = 433920000)
-- `--sample-rate`: Sample rate in Hz (must be within device capability)
-- `--gain-db`: Receiver gain in dB (0-50 for RTL-SDR)
-- `--duration`: Capture duration in seconds
-- `--output`: Output .npz file path
+- `--device`: SDR device type (rtl-sdr | hackrf) [default: rtl-sdr]
+- `--frequency-hz`: Center frequency in Hz (e.g., 433.92 MHz = 433920000) [REQUIRED]
+- `--sample-rate`: Sample rate in Hz (must be within device capability) [REQUIRED]
+- `--gain-db`: Receiver gain in dB (0-50 for RTL-SDR) [default: 20.0]
+- `--duration`: Capture duration in seconds [default: 5.0]
+- `--output`: Output .npz file path [REQUIRED]
 
 **Console Output:**
 ```
@@ -196,12 +197,12 @@ vulture sdr scan \
 Scans a frequency range in receive-only mode and reports signal strength at each frequency step.
 
 **Parameters:**
-- `--device`: SDR device type (rtl-sdr | hackrf)
-- `--freq-start`: Start frequency in Hz (88 MHz = 88000000)
-- `--freq-stop`: Stop frequency in Hz (108 MHz = 108000000)
-- `--sample-rate`: Sample rate in Hz
-- `--gain-db`: Receiver gain
-- `--step-hz`: Frequency step size (1 MHz = 1000000)
+- `--device`: SDR device type (rtl-sdr | hackrf) [default: rtl-sdr]
+- `--freq-start`: Start frequency in Hz (88 MHz = 88000000) [REQUIRED]
+- `--freq-stop`: Stop frequency in Hz (108 MHz = 108000000) [REQUIRED]
+- `--sample-rate`: Sample rate in Hz [REQUIRED]
+- `--gain-db`: Receiver gain [default: 20.0]
+- `--step-hz`: Frequency step size (1 MHz = 1000000) [default: 1000000]
 
 **Console Output:**
 ```
@@ -241,7 +242,7 @@ Frequency (MHz) | Signal Strength (dBm)
 - Measures signal power at each step
 - Records signal strength in dBm (decibels relative to 1 milliwatt)
 - Identifies active frequency bands and signal peaks
-- Uses 1 MHz steps for FM broadcast band (88-108 MHz)
+- Uses configurable frequency step size
 
 ---
 
@@ -262,10 +263,12 @@ vulture forensic device \
 Performs comprehensive device compromise detection by analyzing RF capture data for suspicious patterns, anomalies, and indicators of tampering or malicious activity.
 
 **Parameters:**
-- `--input`: Input .npz or .iq capture file
-- `--case-id`: Case identifier for evidence tracking
-- `--subject`: Device/sample identifier
-- `--frequency-hz`: Center frequency of capture
+- `--input`: Input .npz or .iq capture file [REQUIRED]
+- `--case-id`: Case identifier for evidence tracking [REQUIRED]
+- `--subject`: Device/sample identifier [REQUIRED]
+- `--frequency-hz`: Center frequency of capture [REQUIRED]
+- `--output`: Output file path (optional) [default: None]
+- `--format`: Output format (json | txt) [default: json]
 
 **Console Output:**
 ```
@@ -339,10 +342,6 @@ RF/WIRELESS VULNERABILITIES
     Attack Vector: Jamming/Interference
     Protocols: All RF Protocols
     Recommendation: Analyze frequency spectrum for interfering sources
-
-───────────────────────────────────────────────────────────���─────
-CHAIN OF CUSTODY
-─────────────────────────────────────────────────────────────────
 
 ═════════════════════════════════════════════════════════════════
 END OF REPORT
@@ -453,12 +452,12 @@ vulture forensic report \
 Generates a complete forensic report with all findings, evidence preservation, and chain of custody information. Supports multiple output formats (JSON, TXT, HTML).
 
 **Parameters:**
-- `--input`: Input capture file (.npz or .iq)
-- `--case-id`: Case identifier
-- `--subject`: Device identifier
-- `--frequency-hz`: Center frequency
-- `--output`: Output file path
-- `--format`: Output format (json | txt | html)
+- `--input`: Input capture file (.npz or .iq) [REQUIRED]
+- `--case-id`: Case identifier [REQUIRED]
+- `--subject`: Device identifier [REQUIRED]
+- `--frequency-hz`: Center frequency [REQUIRED]
+- `--output`: Output file path [REQUIRED]
+- `--format`: Output format (json | txt | html) [default: json]
 
 **Console Output:**
 ```
@@ -467,62 +466,8 @@ Generates a complete forensic report with all findings, evidence preservation, a
   Evidence Hash: a3f5c2b1d8e9f4a6c7b2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a
 ```
 
-**File Generated: device-report.json**
-(See JSON output from command 5 above)
-
-**HTML Format Output Example:**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>VULTURE Forensic Report - C-001</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 5px; }
-        .section { background: white; margin: 20px 0; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .critical { color: #e74c3c; font-weight: bold; }
-        .high { color: #e67e22; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #34495e; color: white; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🦅 VULTURE Forensic Analysis Report</h1>
-        <p><strong>Case ID:</strong> C-001</p>
-        <p><strong>Device:</strong> device-01</p>
-        <p><strong>Analysis Time:</strong> 2026-10-07T10:17:30.654321+00:00</p>
-    </div>
-    
-    <div class="section">
-        <h2>Compromise Assessment</h2>
-        <p><strong>Status:</strong> <span class="critical">🔴 COMPROMISED</span></p>
-        <p><strong>Compromise Score:</strong> 62.5/100</p>
-        <p><strong>Confidence:</strong> 75.0%</p>
-    </div>
-    
-    <div class="section">
-        <h2>Vulnerability Summary</h2>
-        <table>
-            <tr><th>Severity</th><th>Count</th></tr>
-            <tr><td class="critical">Critical</td><td>1</td></tr>
-            <tr><td class="high">High</td><td>2</td></tr>
-            <tr><td>Medium</td><td>3</td></tr>
-            <tr><td>Low</td><td>2</td></tr>
-        </table>
-    </div>
-    
-    <div class="section">
-        <h2>Evidence Hash</h2>
-        <p><code>a3f5c2b1d8e9f4a6c7b2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a</code></p>
-    </div>
-</body>
-</html>
-```
-
 **What Happens:**
-1. Performs complete forensic analysis (same as command 5)
+1. Performs complete forensic analysis
 2. Validates output file path
 3. Creates parent directories if needed
 4. Serializes analysis to chosen format
@@ -548,14 +493,16 @@ vulture forensic physics \
 Audits physical RF measurement parameters for plausibility and anomalies.
 
 **Parameters:**
-- `--case-id`: Case identifier
-- `--subject`: Subject identifier
-- `--frequency-hz`: Frequency in Hz (2.4 GHz = 2400000000)
-- `--distance-m`: Distance in meters
+- `--case-id`: Case identifier [REQUIRED]
+- `--subject`: Subject identifier [REQUIRED]
+- `--frequency-hz`: Frequency in Hz (2.4 GHz = 2400000000) [REQUIRED]
+- `--distance-m`: Distance in meters [REQUIRED]
 - `--bandwidth-hz`: RF bandwidth in Hz (optional)
-- `--format`: Output format (json | txt)
+- `--input`: Optional .npz or .iq capture file
+- `--output`: Optional output file path
+- `--format`: Output format (json | txt) [default: json]
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "case_id": "C-002",
@@ -591,12 +538,14 @@ vulture forensic chemistry \
 Detects hazardous chemical materials in devices and scores risk from low to critical severity.
 
 **Parameters:**
-- `--case-id`: Case identifier
-- `--subject`: Sample identifier
-- `--compounds-json`: JSON array of compounds with concentrations
-- `--format`: Output format (json | txt)
+- `--case-id`: Case identifier [REQUIRED]
+- `--subject`: Sample identifier [REQUIRED]
+- `--compounds-json`: JSON array of compounds with concentrations [REQUIRED]
+- `--input`: Optional .npz or .iq capture file
+- `--output`: Optional output file path
+- `--format`: Output format (json | txt) [default: json]
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "case_id": "C-003",
@@ -639,9 +588,57 @@ Detects hazardous chemical materials in devices and scores risk from low to crit
 
 ---
 
-## Chemical & Physical Vulnerability Commands
+### 9. Forensic Math - Linear System Audit
 
-### 9. Chemical-RF NMR Analysis
+**Command:**
+```bash
+vulture forensic math \
+  --case-id C-004 \
+  --subject system-01 \
+  --matrix-json '[[2,1],[1,1]]' \
+  --vector-json '[3,2]'
+```
+
+**Description:**
+Audits local linear system for dimensions and non-finite values.
+
+**Parameters:**
+- `--case-id`: Case identifier [REQUIRED]
+- `--subject`: Subject identifier [REQUIRED]
+- `--matrix-json`: JSON matrix array [REQUIRED]
+- `--vector-json`: JSON vector array [REQUIRED]
+- `--input`: Optional capture file
+- `--output`: Optional output file path
+- `--format`: Output format (json | txt) [default: json]
+
+---
+
+### 10. Forensic Protocol - Frame Structure Audit
+
+**Command:**
+```bash
+vulture forensic protocol \
+  --case-id C-005 \
+  --subject frame-01 \
+  --frames-json '[{"length":4,"checksum":"valid"}]'
+```
+
+**Description:**
+Checks supplied protocol metadata and frames; no network probing occurs.
+
+**Parameters:**
+- `--case-id`: Case identifier [REQUIRED]
+- `--subject`: Subject identifier [REQUIRED]
+- `--frames-json`: JSON frame array [REQUIRED]
+- `--input`: Optional capture file
+- `--output`: Optional output file path
+- `--format`: Output format (json | txt) [default: json]
+
+---
+
+## Chemical-RF Commands
+
+### 11. Chemical-RF NMR Analysis
 
 **Command:**
 ```bash
@@ -655,11 +652,11 @@ vulture chemical-rf nmr \
 Calculates Larmor frequency for NMR analysis using capture file metadata.
 
 **Parameters:**
-- `--input`: Capture file (.npz or .iq)
-- `--nucleus`: Nucleus type (1H, 13C, 31P, etc.)
-- `--field-t`: Magnetic field strength in Tesla
+- `--input`: Capture file (.npz or .iq) [REQUIRED]
+- `--nucleus`: Nucleus type (1H, 13C, 31P, etc.) [default: 1H]
+- `--field-t`: Magnetic field strength in Tesla [default: 7.0]
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "captured_sample_rate": 2400000,
@@ -679,7 +676,7 @@ Calculates Larmor frequency for NMR analysis using capture file metadata.
 
 ---
 
-### 10. Chemical-RF Material Analysis
+### 12. Chemical-RF Material Analysis
 
 **Command:**
 ```bash
@@ -695,13 +692,13 @@ vulture chemical-rf material \
 Analyzes material dielectric properties and resonance characteristics.
 
 **Parameters:**
-- `--input`: Capture file
-- `--epsilon-r`: Relative permittivity
-- `--conductivity`: Electrical conductivity (S/m)
-- `--frequency-hz`: Frequency in Hz
-- `--length-m`: Material length in meters
+- `--input`: Capture file [REQUIRED]
+- `--epsilon-r`: Relative permittivity [REQUIRED]
+- `--conductivity`: Electrical conductivity (S/m) [default: 0.0]
+- `--frequency-hz`: Frequency in Hz [REQUIRED]
+- `--length-m`: Material length in meters [REQUIRED]
 
-**Expected Output:**
+**Console Output:**
 ```json
 {
   "captured_sample_rate": 2400000,
@@ -728,115 +725,159 @@ Analyzes material dielectric properties and resonance characteristics.
 
 ---
 
-## Report Generation Commands
-
-### 11. Generate Text Format Report
+### 13. Chemical-RF Physics
 
 **Command:**
 ```bash
-vulture forensic report \
+vulture chemical-rf physics \
   --input capture.npz \
-  --case-id C-001 \
-  --subject device-01 \
-  --frequency-hz 433920000 \
-  --output device-report.txt \
-  --format txt
+  --frequency-hz 2400000000 \
+  --distance-m 10
 ```
+
+**Description:**
+Calculate RF physics properties with capture file context.
+
+**Parameters:**
+- `--input`: Capture file (.npz or .iq) [REQUIRED]
+- `--frequency-hz`: Frequency in Hz [REQUIRED]
+- `--distance-m`: Distance in meters [REQUIRED]
 
 **Console Output:**
-```
-✓ Report saved to device-report.txt
-  Format: txt
-  Evidence Hash: a3f5c2b1d8e9f4a6c7b2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a
-```
-
-**Generated File Content (device-report.txt):**
-```
-╔══════════════════════════════════════════════════════════════╗
-║         VULTURE FORENSIC COMPROMISE ANALYSIS REPORT          ║
-╚══════════════════════════════════════════════════════════════╝
-
-Case ID:              C-001
-Device:               device-01
-Analysis Time:        2026-10-07T10:17:30.654321+00:00
-Evidence Hash:        a3f5c2b1d8e9f4a6c7b2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a
-
-─────────────────────────────────────────────────────────────────
-COMPROMISE ASSESSMENT
-─────────────────────────────────────────────────────────────────
-Status:               🔴 COMPROMISED
-Compromise Score:     62.5/100
-Confidence:           75.0%
-
-Indicators Detected:
-  • frequency-drift
-  • power-anomaly
-  • timing-anomaly
-
-─────────────────────────────────────────────────────────────────
-VULNERABILITY SUMMARY
-─────────────────────────────────────────────────────────────────
-Total Findings:       8
-  🔴 Critical:        1
-  🟠 High:            2
-  🟡 Medium:          3
-  🔵 Low:             2
-  ⚪ Info:            0
-
-─────────────────────────────────────────────────────────────────
-PHYSICAL VULNERABILITIES
-─────────────────────────────────────────────────────────────────
-🟡 [1] Signal Clipping Detected (PHY-002)
-    Description: Receiver gain may be too high causing signal saturation
-    Evidence: Clipping ratio: 2.34%
-    Recommendation: Reduce receiver gain and recapture
-
-─────────────────────────────────────────────────────────────────
-RF/WIRELESS VULNERABILITIES
-─────────────────────────────────────────────────────────────────
-🟠 [1] Frequency Drift Detected (RF-002)
-    Description: Significant frequency deviation from nominal center frequency
-    Severity: HIGH
-    Evidence: Frequency deviation: 1250 Hz
-    Attack Vector: Frequency Instability
-    Protocols: All RF Protocols
-    Recommendation: Check oscillator stability and hardware calibration
-
-═════════════════════════════════════════════════════════════════
-END OF REPORT
-═════════════════════════════════════════════════════════════════
+```json
+{
+  "captured_sample_rate": 2400000,
+  "distance_m": 10,
+  "frequency_hz": 2400000000,
+  "input": "capture.npz",
+  "input_format": "npz",
+  "path_loss_db": -100.2,
+  "samples_count": 12000000,
+  "wavelength_m": 0.125
+}
 ```
 
 ---
 
-### 12. Generate HTML Format Report
+### 14. Chemical-RF Report
 
 **Command:**
 ```bash
-vulture forensic report \
+vulture chemical-rf report \
   --input capture.npz \
-  --case-id C-001 \
-  --subject device-01 \
-  --frequency-hz 433920000 \
-  --output device-report.html \
-  --format html
+  --sample-id S-001 \
+  --real-ohm 50 \
+  --imag-ohm 2.5
 ```
 
-**Console Output:**
-```
-✓ Report saved to device-report.html
-  Format: html
-  Evidence Hash: a3f5c2b1d8e9f4a6c7b2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a
+**Description:**
+Create impedance analysis report linked to capture file.
+
+**Parameters:**
+- `--input`: Capture file (.npz or .iq) [REQUIRED]
+- `--sample-id`: Sample identifier [REQUIRED]
+- `--real-ohm`: Real impedance component [REQUIRED]
+- `--imag-ohm`: Imaginary impedance component [REQUIRED]
+
+---
+
+## RF-DNA Commands
+
+### 15. RF-DNA Status
+
+**Command:**
+```bash
+vulture rf-dna status
 ```
 
-**Generated File: device-report.html**
-(Renders as professional HTML page with styling and interactive elements)
+**Description:**
+Show RF-DNA capabilities through the main VULTURE command.
+
+---
+
+### 16. RF-DNA Simulate
+
+**Command:**
+```bash
+vulture rf-dna simulate \
+  --profile multi-tone \
+  --duration 2 \
+  --sample-rate 1000000 \
+  --seed 7 \
+  --output capture.npz
+```
+
+**Parameters:**
+- `--profile`: Signal profile (noise | multi-tone) [default: noise]
+- `--duration`: Duration in seconds [default: 1.0]
+- `--sample-rate`: Sample rate in Hz [default: 1000000]
+- `--seed`: Random seed [default: 7]
+- `--output`: Output .npz file [REQUIRED]
+
+---
+
+### 17. RF-DNA Fingerprint
+
+**Command:**
+```bash
+vulture rf-dna fingerprint \
+  --input capture.npz \
+  --label device-01
+```
+
+**Parameters:**
+- `--input`: Input capture file [REQUIRED]
+- `--label`: Device label [default: unlabelled]
+
+---
+
+### 18. RF-DNA Dashboard
+
+**Command:**
+```bash
+vulture rf-dna dashboard \
+  --input capture.npz \
+  --label dashboard-capture
+```
+
+---
+
+### 19. RF-DNA Report
+
+**Command:**
+```bash
+vulture rf-dna report \
+  --input capture.npz \
+  --label capture-report
+```
+
+---
+
+### 20. RF-DNA Quantum
+
+**Command:**
+```bash
+vulture rf-dna quantum \
+  --profile multi-tone \
+  --duration 2 \
+  --sample-rate 1000000 \
+  --seed 7
+```
+
+---
+
+### 21. RF-DNA Backends
+
+**Command:**
+```bash
+vulture rf-dna backends
+```
 
 ---
 
 ## Interactive Shell Commands
 
-### 13. Enter Interactive Mode
+### 22. Enter Interactive Mode
 
 **Command:**
 ```bash
@@ -943,7 +984,7 @@ vulture forensic device \
   --subject mystery-device \
   --frequency-hz 433920000
 
-# Step 3: Generate comprehensive report
+# Step 3: Generate comprehensive report (JSON)
 vulture forensic report \
   --input device_capture.npz \
   --case-id CASE-2026-001 \
@@ -1040,43 +1081,6 @@ vulture forensic chemistry \
 - ✅ Reports include chain of custody information
 - ✅ Timestamps are in UTC (ISO 8601 format)
 - ✅ Compression is handled automatically for .npz files
-
----
-
-## Troubleshooting
-
-### RTL-SDR Device Not Found
-```bash
-# Check device availability
-vulture sdr status
-
-# Install librtlsdr
-sudo apt-get install librtlsdr0 librtlsdr-dev rtl-sdr
-pip install pyrtlsdr
-```
-
-### Capture File Missing Sample Rate
-```bash
-# For .iq files, create JSON sidecar
-echo '{"sample_rate":2400000}' > capture.iq.json
-
-# Then run analysis
-vulture forensic device --input capture.iq --case-id C-001 --subject device --frequency-hz 433920000
-```
-
-### Permission Denied Writing Report
-```bash
-# Ensure output directory exists and is writable
-mkdir -p ./reports
-chmod 755 ./reports
-
-vulture forensic report \
-  --input capture.npz \
-  --case-id C-001 \
-  --subject device \
-  --frequency-hz 433920000 \
-  --output ./reports/report.json
-```
 
 ---
 
