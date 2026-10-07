@@ -1,102 +1,116 @@
-"""Receive-only SDR and canonical .iq boundary.
-
-Synthetic generation is intentionally not part of this module. Offline input
-must be a canonical little-endian complex64 .iq capture with a JSON sidecar.
-"""
+"""Receive-only RF-DNA CLI with deterministic local analysis and reporting."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
 from pathlib import Path
 
+import click
 import numpy as np
 
-from vulture.sdr_iq_framework.partition import read_iq_file, write_iq_file
+from vulture.rf_dna.dashboard import build_capture_from_npz, build_dashboard_summary
+from vulture.rf_dna.experiment_suite import run_quantum_experiment
+from vulture.rf_dna.fingerprint import extract_fingerprint
+from vulture.rf_dna.reporting import generate_report, rf_dna_status
+from vulture.rf_dna.simulator import generate_iq, save_npz
 
 
-@dataclass(frozen=True)
-class ReceiveConfig:
-    sample_rate: float
-    center_frequency: float
-    gain: float | None = None
-    device_args: str | None = None
-    channel: int = 0
+@click.group(name="rf-dna")
+def cli() -> None:
+    """Receive-only RF-DNA simulation, fingerprinting, and reporting commands."""
 
 
-class ReceiveOnlySource:
-    """Read canonical .iq captures or an explicitly configured RX device."""
+@cli.command("status")
+def status() -> None:
+    """Return the safe status payload for the RF-DNA tool."""
+    click.echo(json.dumps(rf_dna_status(), indent=2, sort_keys=True))
 
-    def __init__(self, config: ReceiveConfig):
-        if config.sample_rate <= 0 or config.center_frequency < 0:
-            raise ValueError("invalid receive configuration")
-        if config.channel < 0:
-            raise ValueError("channel must be non-negative")
-        self.config = config
 
-    @staticmethod
-    def is_soapysdr_available() -> bool:
-        try:
-            import SoapySDR  # type: ignore
-            return True
-        except Exception:
-            return False
+@cli.command("simulate")
+@click.option("--profile", default="noise", show_default=True)
+@click.option("--duration", type=float, default=1.0, show_default=True)
+@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
+@click.option("--seed", type=int, default=7, show_default=True)
+@click.option("--output", type=click.Path(dir_okay=False, path_type=Path), required=True)
+def simulate(profile: str, duration: float, sample_rate: float, seed: int, output: Path) -> None:
+    """Generate a deterministic synthetic IQ capture without any SDR or network access."""
+    iq = generate_iq(profile, duration, sample_rate, seed=seed)
+    save_npz(output, iq, sample_rate)
+    click.echo(
+        json.dumps(
+            {"output": str(output), "samples": int(iq.size), "profile": profile, "seed": seed},
+            indent=2,
+            sort_keys=True,
+        )
+    )
 
-    @staticmethod
-    def from_iq(path: str | Path, sample_rate: float | None = None) -> tuple[np.ndarray, float]:
-        iq, rate = read_iq_file(path, sample_rate)
-        if rate is None:
-            raise ValueError(".iq capture requires a positive sample rate or .json sidecar")
-        return iq, rate
 
-    @staticmethod
-    def from_npz(path: str | Path) -> tuple[np.ndarray, float]:
-        raise RuntimeError("NPZ fixtures are disabled; use a canonical .iq capture")
+@cli.command("fingerprint")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False, path_type=Path), required=True)
+@click.option("--label", default="unlabelled", show_default=True)
+def fingerprint(input_path: Path, label: str) -> None:
+    """Extract a descriptive fingerprint from a local NPZ capture."""
+    data = np.load(input_path)
+    iq = np.asarray(data["iq"], dtype=np.complex64)
+    sample_rate = float(data["sample_rate"])
+    result = extract_fingerprint(iq, sample_rate).to_dict()
+    result["label"] = label
+    result["source"] = str(input_path)
+    click.echo(json.dumps(result, indent=2, sort_keys=True))
 
-    @staticmethod
-    def from_file_or_sdr(path: str | Path | None = None, config: ReceiveConfig | None = None):
-        if path is not None:
-            if Path(path).suffix.lower() != ".iq":
-                raise ValueError("input must be a canonical .iq capture")
-            return ReceiveOnlySource.from_iq(path)
-        if config is None:
-            raise ValueError("provide --input capture.iq or a configured SDR receive config")
-        return ReceiveOnlySource(config)
 
-    def open_soapysdr(self):  # pragma: no cover - requires optional hardware
-        if not self.config.device_args:
-            raise ValueError("device_args must be explicitly configured")
-        if not self.is_soapysdr_available():
-            raise RuntimeError("SoapySDR runtime is unavailable")
-        import SoapySDR  # type: ignore
-        device = SoapySDR.Device(self.config.device_args)
-        direction = SoapySDR.SOAPY_SDR_RX
-        channel = self.config.channel
-        device.setSampleRate(direction, channel, self.config.sample_rate)
-        device.setFrequency(direction, channel, self.config.center_frequency)
-        if self.config.gain is not None:
-            device.setGain(direction, channel, self.config.gain)
-        stream = device.setupStream(direction, SoapySDR.SOAPY_SDR_CF32, [channel])
-        device.activateStream(stream)
-        return device, stream
+@cli.command("dashboard")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False, path_type=Path), required=True)
+@click.option("--label", default="dashboard-capture", show_default=True)
+def dashboard(input_path: Path, label: str) -> None:
+    """Create a dashboard summary and provenance report from a local capture."""
+    capture = build_capture_from_npz(input_path, label=label)
+    click.echo(json.dumps(build_dashboard_summary([capture]), indent=2, sort_keys=True))
 
-    def capture_to_iq(self, path: str | Path, sample_count: int, chunk_size: int = 16_384) -> int:
-        """Capture receive-only samples from the configured SDR into .iq."""
-        if sample_count <= 0 or chunk_size <= 0:
-            raise ValueError("sample_count and chunk_size must be positive")
-        import SoapySDR  # type: ignore
-        device, stream = self.open_soapysdr()
-        samples: list[np.ndarray] = []
-        remaining = sample_count
-        try:
-            while remaining:
-                count = min(chunk_size, remaining)
-                buffer = np.empty(count, dtype=np.complex64)
-                result = device.readStream(stream, [buffer], count)
-                if result.ret <= 0:
-                    raise RuntimeError(f"SDR read failed with code {result.ret}")
-                samples.append(buffer[:result.ret].copy())
-                remaining -= result.ret
-        finally:
-            device.deactivateStream(stream)
-            device.closeStream(stream)
-        write_iq_file(path, np.concatenate(samples), self.config.sample_rate)
-        return sample_count
+
+@cli.command("report")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False, path_type=Path), required=True)
+@click.option("--label", default="capture-report", show_default=True)
+def report(input_path: Path, label: str) -> None:
+    """Create a machine-readable RF-DNA report from a local capture."""
+    click.echo(json.dumps(generate_report(input_path, label=label), indent=2, sort_keys=True))
+
+
+@cli.command("quantum")
+@click.option("--profile", default="multi-tone", show_default=True)
+@click.option("--duration", type=float, default=2.0, show_default=True)
+@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
+@click.option("--seed", type=int, default=7, show_default=True)
+def quantum(profile: str, duration: float, sample_rate: float, seed: int) -> None:
+    """Run a deterministic quantum-inspired RF baseline against a classical reference."""
+    iq = generate_iq(profile, duration, sample_rate, seed=seed)
+    click.echo(json.dumps(run_quantum_experiment(iq, sample_rate, seed=seed), indent=2, sort_keys=True))
+
+
+@cli.command("backends")
+def backends() -> None:
+    """Report optional receive backends without probing hardware or networks."""
+    try:
+        import SoapySDR  # type: ignore  # noqa: F401
+
+        soapy = True
+    except ImportError:
+        soapy = False
+
+    click.echo(
+        json.dumps(
+            {
+                "local_npz": True,
+                "simulator": True,
+                "soapysdr_installed": soapy,
+                "offline_mode": not soapy,
+                "transmit": False,
+                "network_probe": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+
+
+if __name__ == "__main__":
+    cli()
