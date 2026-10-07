@@ -1,390 +1,580 @@
-VULTURE — STRICT AGPL-3.0 PROJECT TERMS
+VULTURE — STRICT PROPRIETARY & INTELLECTUAL PROPERTY LICENSE
+
+Version 1.0
 
 Copyright © 2026 black-210. All Rights Reserved.
 
-VULTURE is licensed under the GNU Affero General Public License, version 3 or any later version (AGPL-3.0-or-later).
+VULTURE is proprietary, closed-source software and is NOT Open Source, NOT Free Software, and is NOT licensed under AGPL, GPL, MIT, Apache, BSD, or any other open-source license.
 
-These Project Terms supplement the AGPL-3.0-or-later without restricting any right that the AGPL-3.0-or-later requires the Licensor to grant.
+This License Agreement ("Agreement") governs all access to, possession of, installation, execution, copying, distribution, modification, integration, analysis, or other use of the VULTURE software and associated intellectual property ("VULTURE").
 
-Where a provision of these Project Terms conflicts with a mandatory provision of the AGPL-3.0-or-later, the AGPL-3.0-or-later controls.
-
----
-
-1. COPYRIGHT
-
-All original copyrightable material contained in VULTURE remains the property of its respective copyright holders.
-
-Copyright ownership is not transferred by:
-
-- downloading VULTURE;
-- copying VULTURE;
-- modifying VULTURE;
-- creating a fork;
-- redistributing VULTURE;
-- incorporating VULTURE into another permitted work;
-- compiling VULTURE;
-- commercially using VULTURE; or
-- providing services based upon VULTURE.
-
-Every permitted copy and modified version must preserve all copyright and license notices required by the AGPL-3.0-or-later.
-
-No person may falsely claim authorship of original VULTURE material.
+By downloading, installing, accessing, executing, possessing, or otherwise using VULTURE, you acknowledge that you have read, understood, and agreed to this Agreement to the maximum extent permitted by applicable law.
 
 ---
 
-2. AGPL RIGHTS
+1. DEFINITIONS
 
-The rights granted by the AGPL-3.0-or-later are expressly preserved.
+For purposes of this Agreement:
 
-Accordingly, subject to the AGPL-3.0-or-later, users may:
+"VULTURE" means the complete software project and all associated components, including but not limited to:
 
-- use VULTURE;
-- study VULTURE;
-- modify VULTURE;
-- create derivative works;
-- create forks;
-- distribute copies;
-- distribute modified versions;
-- use VULTURE commercially; and
-- provide network services based upon VULTURE.
+- source code;
+- object code;
+- binaries;
+- executables;
+- libraries;
+- modules;
+- algorithms;
+- implementations;
+- architecture;
+- system design;
+- APIs;
+- interfaces;
+- command-line interfaces;
+- data-processing pipelines;
+- RF/SDR/IQ analysis systems;
+- RF-DNA functionality;
+- mathematical and scientific implementations;
+- forensic functionality;
+- machine-learning components;
+- simulation systems;
+- reports;
+- dashboards;
+- documentation;
+- tests;
+- fixtures;
+- examples;
+- configuration files;
+- build systems;
+- scripts;
+- packaging;
+- artwork;
+- logos;
+- names;
+- documentation structure;
+- project structure;
+- proprietary methodologies;
+- proprietary workflows;
+- proprietary technical designs;
+- trade secrets;
+- unpublished functionality;
+- future versions and updates,
+- and any other material supplied as part of VULTURE.
 
-These rights are conditional upon compliance with the AGPL-3.0-or-later.
+"Derivative Work" means any work based upon, derived from, adapted from, translated from, modified from, reconstructed from, substantially similar to, or incorporating protected portions of VULTURE.
 
----
+"Fork" means any independent or modified copy, continuation, branch, clone, successor, replacement, derivative project, or competing project created from or using VULTURE or its protected materials.
 
-3. STRICT COMPLIANCE
+"Commercial Use" means any use directly or indirectly connected with revenue, commercial activity, paid services, products, consulting, SaaS, hosting, resale, licensing, monetization, employment, business operations, or financial benefit.
 
-Any distribution, modification, propagation, or network use of VULTURE must comply with every applicable requirement of the AGPL-3.0-or-later.
-
-In particular, where applicable, a distributor of a modified version must:
-
-1. identify modifications;
-2. preserve required copyright notices;
-3. preserve required license notices;
-4. provide the applicable license;
-5. provide the Corresponding Source as required;
-6. provide required installation information where applicable;
-7. preserve required legal notices;
-8. comply with the AGPL requirements applicable to network interaction; and
-9. refrain from imposing further restrictions on recipients.
-
----
-
-4. NO ADDITIONAL RESTRICTIONS
-
-No distributor may add contractual or technical restrictions that remove or limit rights granted by the AGPL-3.0-or-later.
-
-No distributor may require a recipient to surrender rights granted by the AGPL-3.0-or-later as a condition of receiving a covered work.
-
-No distributor may impose an additional license fee, royalty, or similar charge merely for exercising rights granted by the AGPL-3.0-or-later.
-
----
-
-5. COMMERCIAL USE
-
-Commercial use is permitted only under the AGPL-3.0-or-later.
-
-Commercial users remain fully responsible for compliance with the license.
-
-Commercial use does not grant ownership of VULTURE.
-
-Commercial use does not transfer copyright.
-
-Commercial use does not grant ownership of the VULTURE project, repository, documentation, original implementation, or VULTURE Marks.
-
-Commercial users must comply with all applicable source-disclosure and network-use obligations imposed by the AGPL-3.0-or-later.
+"Intellectual Property" means all copyrights, trademarks, trade secrets, confidential information, patents and patentable subject matter, designs, documentation, software, know-how, methodologies, and other proprietary rights associated with VULTURE.
 
 ---
 
-6. COMMERCIAL DISTRIBUTION
+2. OWNERSHIP
 
-A person may sell copies of VULTURE where permitted by the AGPL-3.0-or-later.
+VULTURE and all associated Intellectual Property are and shall remain the exclusive property of their respective copyright and intellectual-property owner, including black-210, except for third-party components expressly identified as being owned by other parties.
 
-However, payment for a copy does not create ownership of the underlying copyright.
+No provision of this Agreement transfers ownership of VULTURE.
 
-A commercial distributor must provide recipients all rights and materials required by the AGPL-3.0-or-later.
+Downloading, purchasing, receiving, installing, executing, or possessing VULTURE does not transfer ownership of the software or its Intellectual Property.
 
-A distributor may not sell VULTURE while simultaneously removing the freedoms granted by the AGPL-3.0-or-later.
+The user receives only the limited rights expressly granted by this Agreement.
 
----
-
-7. COMMERCIAL INTEGRATION
-
-Integration of VULTURE into another work is subject to the applicable requirements of the AGPL-3.0-or-later.
-
-Where the AGPL-3.0-or-later requires the resulting covered work to be licensed under AGPL terms, those requirements must be satisfied.
-
-No party may use integration as a mechanism to evade the AGPL-3.0-or-later.
-
-Calling VULTURE through another component, wrapping it, embedding it, linking it, packaging it, or exposing it through another interface does not by itself eliminate obligations imposed by the AGPL-3.0-or-later where those obligations otherwise apply.
+All rights not expressly granted are reserved.
 
 ---
 
-8. NETWORK SERVICES
+3. CLOSED-SOURCE STATUS
 
-If a modified version of VULTURE is used to provide an interactive service over a network, the operator must comply with the corresponding-source requirements of section 13 of the AGPL-3.0-or-later where applicable.
+VULTURE is proprietary closed-source software.
 
-No technical architecture may be intentionally designed for the purpose of circumventing applicable AGPL source-disclosure obligations.
+The source code is confidential and proprietary unless the copyright owner expressly publishes a particular portion under a separate written license.
 
----
+No right is granted to obtain, request, extract, reconstruct, reproduce, or redistribute the VULTURE source code.
 
-9. MODIFICATIONS
-
-Modifications are permitted under the AGPL-3.0-or-later.
-
-Every distributed modified version must comply with the AGPL requirements applicable to modified versions.
-
-Modified versions must prominently identify relevant modifications and dates where required.
-
-A modified version must not falsely represent itself as an unmodified official VULTURE release.
+A publicly available binary, documentation page, API description, command output, screenshot, or other observable behavior does not constitute publication of the source code.
 
 ---
 
-10. FORKS
+4. LIMITED LICENSE GRANT
 
-Forks are permitted under the AGPL-3.0-or-later.
+Subject to continuous compliance with this Agreement, the copyright owner grants the authorized user a:
 
-A fork does not acquire ownership of the original VULTURE project.
+- limited;
+- personal;
+- non-exclusive;
+- non-transferable;
+- non-sublicensable;
+- revocable
 
-A fork does not acquire ownership of black-210's original copyrighted material.
+right to execute the authorized version of VULTURE solely for the purpose expressly permitted by the copyright owner.
 
-A fork must comply with the AGPL-3.0-or-later.
+No other rights are granted.
 
-A fork must accurately identify itself as a fork or derivative where necessary to prevent confusion.
-
----
-
-11. OFFICIAL PROJECT IDENTITY
-
-The original VULTURE project is maintained by its legitimate copyright holders and designated maintainers.
-
-No person may falsely represent a fork, derivative work, modified build, package, service, or distribution as an official VULTURE release.
-
-No person may falsely claim:
-
-- endorsement by black-210;
-- certification by black-210;
-- employment by black-210;
-- ownership of the original VULTURE project;
-- authorship of original VULTURE material; or
-- authorization that was never granted.
+In particular, no implied right to copy, modify, distribute, fork, integrate, sublicense, reverse engineer, or create derivative works exists.
 
 ---
 
-12. VULTURE TRADEMARKS
+5. STRICT NO-FORK PROVISION
 
-The name:
+Forking VULTURE is expressly prohibited.
 
-VULTURE
+No person or organization may create, maintain, publish, distribute, promote, or operate a Fork of VULTURE without prior explicit written authorization from the copyright owner.
 
-and associated logos, artwork, symbols, product names, and branding are separate from the copyright license.
+This prohibition includes, without limitation:
 
-The AGPL-3.0-or-later does not automatically grant trademark rights.
+- GitHub forks;
+- GitLab forks;
+- Codeberg forks;
+- Bitbucket forks;
+- mirrored repositories;
+- private forks;
+- public forks;
+- modified copies;
+- successor repositories;
+- renamed versions;
+- rewritten versions derived from VULTURE;
+- commercial derivatives;
+- internal corporate derivatives;
+- research derivatives;
+- educational derivatives;
+- competing products derived from protected VULTURE materials.
 
-Use of the VULTURE Marks must not falsely suggest:
-
-- official status;
-- endorsement;
-- sponsorship;
-- certification;
-- partnership;
-- authorship;
-- ownership; or
-- affiliation.
-
-A modified version may accurately identify itself as a VULTURE fork or derivative where legally appropriate, but must not falsely present itself as the official project.
-
----
-
-13. ATTRIBUTION
-
-All required copyright, license, authorship, modification, and legal notices must remain intact.
-
-No person may intentionally remove required attribution.
-
-No person may replace original copyright notices with their own notices in a manner falsely claiming ownership of material they did not create.
-
-Additional truthful attribution is permitted where consistent with the AGPL-3.0-or-later.
+Possession of a copy of VULTURE does not grant permission to create a Fork.
 
 ---
 
-14. NO FALSE AUTHORITY
+6. NO COPYING
 
-No person may falsely claim to speak on behalf of VULTURE or black-210.
+Except where mandatory law expressly provides otherwise, you may not:
 
-No person may create documentation, websites, repositories, packages, domains, or services designed to falsely appear to be an official VULTURE resource.
+1. copy VULTURE;
+2. reproduce its source code;
+3. reproduce substantial portions of its architecture or implementation;
+4. reproduce proprietary documentation;
+5. reproduce proprietary tests or fixtures;
+6. reproduce proprietary scripts;
+7. redistribute copies;
+8. publish copies;
+9. upload copies to repositories;
+10. mirror VULTURE;
+11. archive VULTURE for redistribution;
+12. provide copies to unauthorized third parties.
 
----
-
-15. SOURCE AVAILABILITY
-
-Where the AGPL-3.0-or-later requires Corresponding Source to be provided, the complete Corresponding Source must be provided according to the requirements of that license.
-
-A distributor may not intentionally provide incomplete source material in order to evade the Corresponding Source requirement.
-
-A distributor may not deliberately remove required build, interface, or source components necessary to satisfy the applicable Corresponding Source requirements.
-
----
-
-16. LICENSE NOTICE
-
-Every permitted redistribution must provide the applicable AGPL-3.0-or-later license text or an appropriate written offer/method as required by that license.
-
-The applicable copyright and license notices must remain intact.
+Any authorized backup must remain subject to this Agreement and must not be distributed.
 
 ---
 
-17. PATENTS
+7. NO MODIFICATION
 
-All patent provisions of the AGPL-3.0-or-later apply.
+Modification of VULTURE is prohibited unless expressly authorized in writing.
 
-No contributor or distributor may impose a discriminatory patent restriction prohibited by the AGPL-3.0-or-later.
+Prohibited modifications include:
 
-Patent rights granted by the AGPL-3.0-or-later remain subject to its terms.
+- editing source code;
+- patching binaries;
+- altering executable behavior;
+- modifying libraries;
+- changing internal algorithms;
+- modifying proprietary configuration;
+- removing restrictions;
+- bypassing licensing controls;
+- altering attribution;
+- creating modified distributions.
 
----
-
-18. ANTI-CIRCUMVENTION
-
-No person may use technical restrictions, access controls, packaging mechanisms, authentication mechanisms, or contractual conditions for the purpose of removing rights that the AGPL-3.0-or-later grants to recipients.
-
-Nothing in this section restricts lawful security research or lawful exercise of rights granted by the AGPL-3.0-or-later.
-
----
-
-19. REVERSE ENGINEERING
-
-The AGPL-3.0-or-later does not impose a general prohibition on reverse engineering.
-
-Where reverse engineering is performed on VULTURE, nothing in these Project Terms grants permission to violate applicable law, third-party rights, confidentiality obligations, or access controls unrelated to rights granted by the license.
-
-No person may use reverse engineering to falsely claim authorship or ownership of VULTURE.
+Any unauthorized modification constitutes unauthorized use of the Intellectual Property to the maximum extent recognized by applicable law.
 
 ---
 
-20. PROHIBITED MISREPRESENTATION
+8. NO DERIVATIVE WORKS
 
-The following are prohibited to the maximum extent permitted by applicable law:
+You may not create or distribute a Derivative Work of VULTURE.
 
-- falsely claiming to be the original author;
-- falsely claiming ownership of VULTURE;
-- falsely claiming an official release;
-- falsely claiming endorsement;
-- falsely claiming certification;
-- falsely claiming affiliation;
-- falsifying project history;
-- removing required legal notices;
-- distributing modified software while falsely presenting it as unmodified; and
-- using VULTURE Marks deceptively.
+This includes works that reproduce protected implementation, code, documentation, structure, architecture, proprietary methods, or other protected expression.
 
-These provisions do not restrict rights expressly granted by the AGPL-3.0-or-later.
+The restriction applies whether the resulting work is:
 
----
+- substantially similar;
+- renamed;
+- reorganized;
+- partially rewritten;
+- translated;
+- ported;
+- optimized;
+- extended;
+- embedded into another program;
+- or otherwise transformed.
 
-21. THIRD-PARTY COMPONENTS
-
-Third-party components remain governed by their respective licenses.
-
-Nothing in these Project Terms overrides a third-party license.
-
-Third-party copyright and license notices must be preserved where required.
+Nothing in this section claims ownership over independent ideas, mathematical facts, scientific principles, or independently created software that is not legally derived from protected VULTURE material.
 
 ---
 
-22. CONTRIBUTIONS
+9. NO COMMERCIAL INTEGRATION
 
-Contributors retain rights they lawfully hold in their contributions unless a separate written agreement provides otherwise.
+Without a separate written commercial license, you may not integrate VULTURE or protected portions of VULTURE into:
 
-Contributors must have sufficient rights to submit their contributions under the applicable project terms.
+- commercial software;
+- commercial platforms;
+- commercial products;
+- SaaS services;
+- cloud services;
+- paid APIs;
+- paid tools;
+- consulting services;
+- managed services;
+- security products;
+- forensic products;
+- RF/SDR products;
+- research products;
+- enterprise systems;
+- proprietary software products;
+- commercial distributions.
 
-Contributions accepted into VULTURE remain subject to the licensing framework applicable to the contribution.
+You may not use VULTURE as a component of a product or service offered for payment without an explicit written license.
 
 ---
 
-23. LICENSE TERMINATION
+10. NO RESALE OR SUBLICENSING
 
-Rights under the AGPL-3.0-or-later may terminate as provided by that license following violation of its terms.
+You may not:
 
-A person who violates the AGPL-3.0-or-later may lose the rights granted by that license according to its termination provisions.
+- sell VULTURE;
+- rent VULTURE;
+- lease VULTURE;
+- sublicense VULTURE;
+- transfer your license;
+- resell access;
+- provide unauthorized hosted access;
+- package VULTURE into another commercial product;
+- distribute VULTURE as part of a paid bundle.
 
-No separate termination provision in these Project Terms shall override the reinstatement and termination mechanisms of the AGPL-3.0-or-later.
+A separate written commercial agreement is required for any such activity.
+
+---
+
+11. NO SOURCE CODE ACCESS
+
+The VULTURE source code is proprietary.
+
+You may not attempt to obtain source code through:
+
+- decompilation;
+- disassembly;
+- binary reconstruction;
+- extraction;
+- debugging for the purpose of discovering protected implementation;
+- symbol recovery;
+- source recovery;
+- code lifting;
+- automated extraction;
+- repository reconstruction;
+- or similar techniques,
+
+except to the extent that a particular restriction is prohibited by mandatory applicable law.
+
+Nothing in this Agreement prohibits legally protected activities that cannot lawfully be restricted.
+
+---
+
+12. REVERSE ENGINEERING
+
+You may not reverse engineer VULTURE for the purpose of:
+
+- obtaining proprietary source code;
+- discovering trade secrets;
+- reproducing protected implementation;
+- creating a competing product;
+- creating a Fork;
+- creating a Derivative Work;
+- bypassing licensing mechanisms;
+- defeating technical protection measures;
+- reproducing proprietary algorithms or implementation.
+
+Where applicable law grants a mandatory statutory exception, this Agreement shall be interpreted consistently with that law.
+
+---
+
+13. TRADE SECRETS AND CONFIDENTIAL INFORMATION
+
+VULTURE may contain confidential information and trade secrets.
+
+You shall not disclose, publish, transmit, sell, transfer, expose, or otherwise make available confidential or proprietary information obtained from VULTURE.
+
+Confidential information includes, where legally protectable:
+
+- unpublished source code;
+- internal architecture;
+- proprietary algorithms;
+- implementation details;
+- security mechanisms;
+- internal documentation;
+- unreleased features;
+- development materials;
+- private repositories;
+- credentials;
+- keys;
+- internal datasets;
+- research information;
+- proprietary methodologies.
+
+These obligations survive termination to the extent permitted by applicable law.
+
+---
+
+14. INTELLECTUAL PROPERTY RIGHTS
+
+The copyright owner reserves all applicable intellectual-property rights in VULTURE.
+
+These may include:
+
+- copyright;
+- trademark rights;
+- trade-secret rights;
+- patent rights;
+- design rights;
+- database rights where applicable;
+- contractual rights;
+- confidentiality rights;
+- and other applicable intellectual-property rights.
+
+Nothing in this Agreement constitutes a waiver of those rights.
+
+---
+
+15. COPYRIGHT
+
+All copyrightable portions of VULTURE remain protected by applicable copyright law.
+
+You may not remove, conceal, alter, or falsify copyright notices.
+
+You may not claim authorship of VULTURE or protected portions of VULTURE.
+
+You may not represent yourself as the original author or copyright owner of VULTURE.
+
+---
+
+16. VULTURE NAME AND TRADEMARK
+
+The name VULTURE, associated logos, branding, visual identity, and other marks associated with the project may constitute trademarks or protected identifiers.
+
+No license is granted to use those marks except as expressly authorized.
+
+You may not:
+
+- create a project named VULTURE;
+- use VULTURE branding for a Fork;
+- imply official affiliation;
+- imply endorsement;
+- represent an unauthorized derivative as official;
+- register confusingly similar project names or marks where prohibited by applicable law;
+- use the VULTURE identity to market an unauthorized derivative.
+
+---
+
+17. FALSE OFFICIAL STATUS
+
+You may not falsely represent that an unauthorized copy, Fork, derivative, modification, or competing implementation is:
+
+- official VULTURE;
+- endorsed by VULTURE;
+- maintained by the VULTURE author;
+- affiliated with black-210;
+- certified by the VULTURE project;
+- an official successor;
+- an authorized commercial edition.
+
+---
+
+18. LICENSE TERMINATION
+
+Any material breach of this Agreement may result in immediate termination of the rights granted under this Agreement, subject to applicable law.
+
+Upon termination, you must cease all unauthorized use and, where legally required, destroy or return unauthorized copies of VULTURE.
+
+Termination does not transfer ownership of any Intellectual Property.
+
+Sections concerning ownership, confidentiality, intellectual property, restrictions, attribution, trademarks, liability, and enforcement shall survive termination to the extent legally applicable.
+
+---
+
+19. NO IMPLIED LICENSE
+
+No license shall arise through:
+
+- silence;
+- publication;
+- possession;
+- access;
+- observation;
+- interoperability;
+- discussion;
+- documentation;
+- employment;
+- contribution;
+- download;
+- installation;
+- or prior dealings,
+
+unless expressly granted in writing.
+
+---
+
+20. THIRD-PARTY COMPONENTS
+
+VULTURE may contain third-party components governed by separate licenses.
+
+Those components remain subject to their applicable licenses.
+
+Nothing in this Agreement attempts to remove rights that the copyright owner does not own.
+
+The proprietary restrictions in this Agreement apply to material owned or controlled by the VULTURE copyright owner to the extent legally permitted.
+
+---
+
+21. INDEPENDENT IMPLEMENTATIONS
+
+This Agreement does not claim ownership over software that is independently created without copying protected VULTURE material.
+
+Independent development must not use:
+
+- VULTURE source code;
+- unauthorized copies;
+- protected documentation;
+- proprietary implementation details;
+- confidential information;
+- trade secrets;
+- or other protected materials.
+
+Independent ideas and independently developed implementations remain subject to applicable law.
+
+---
+
+22. NO TRANSFER OF INTELLECTUAL PROPERTY
+
+Payment of any fee, purchase of access, subscription, download, or receipt of a license does not transfer:
+
+- copyright;
+- source-code ownership;
+- trademark ownership;
+- trade-secret ownership;
+- patent ownership;
+- architectural ownership;
+- or other Intellectual Property.
+
+The licensee receives only the expressly granted right to use the software.
+
+---
+
+23. ENFORCEMENT
+
+The copyright owner reserves the right to pursue all lawful remedies available for unauthorized:
+
+- copying;
+- distribution;
+- modification;
+- commercial use;
+- creation of derivative works;
+- creation of Forks;
+- disclosure of confidential information;
+- misuse of trademarks;
+- infringement of copyright;
+- misappropriation of trade secrets;
+- or other violations.
+
+Available remedies depend on applicable law and jurisdiction.
+
+Nothing in this Agreement limits remedies that cannot legally be waived.
 
 ---
 
 24. NO WAIVER
 
-Failure to enforce a right immediately does not constitute a permanent waiver of that right.
+Failure to enforce a provision immediately does not constitute a permanent waiver of that provision.
 
-No waiver of copyright, trademark, or other independent intellectual-property rights shall be inferred merely from failure to enforce a particular violation.
-
----
-
-25. RESERVATION OF RIGHTS
-
-Except for rights expressly granted by the AGPL-3.0-or-later, all rights are reserved by their respective owners.
-
-This includes applicable:
-
-- copyright;
-- trademark;
-- patent;
-- database rights;
-- design rights;
-- documentation rights; and
-- other intellectual-property rights.
+A waiver must be explicit and, where required, in writing.
 
 ---
 
-26. INDEPENDENT CREATION
+25. SEVERABILITY
 
-Nothing in these Project Terms claims ownership of independently created software that does not unlawfully copy protected VULTURE material.
+If any provision of this Agreement is determined to be invalid, unlawful, or unenforceable, that provision shall be limited or removed only to the minimum extent necessary.
 
-Nothing in these Project Terms prevents lawful independent development.
-
----
-
-27. LEGAL PRIORITY
-
-The AGPL-3.0-or-later is the governing software license.
-
-These Project Terms are supplemental project terms concerning copyright notices, attribution, project identity, trademark use, and other rights that may lawfully be addressed separately.
-
-Where these terms conflict with a mandatory provision of the AGPL-3.0-or-later, the AGPL-3.0-or-later prevails.
+The remaining provisions shall remain effective to the maximum extent permitted by applicable law.
 
 ---
 
-28. NO ADDITIONAL LIMITATION OF AGPL RIGHTS
+26. NO WARRANTY OF RIGHTS BEYOND GRANT
 
-Nothing in this document shall be interpreted to prohibit:
+Except for rights expressly granted in this Agreement, no rights are granted.
 
-- lawful commercial use;
-- lawful modification;
-- lawful distribution;
-- lawful forking;
-- lawful creation of derivative works;
-- lawful sale of copies; or
-- any other right expressly granted by the AGPL-3.0-or-later.
-
-Any such right remains subject to compliance with the AGPL-3.0-or-later.
+The user is responsible for ensuring that their use of VULTURE complies with applicable law.
 
 ---
 
-LICENSE
+27. GOVERNING LAW
 
-VULTURE is licensed under:
+This Agreement shall be interpreted under the law selected by the copyright owner in the applicable commercial or distribution agreement, subject to mandatory laws applicable to the parties and transaction.
 
-GNU Affero General Public License v3.0 or later
-
-The authoritative AGPL license text governs the rights and obligations of all recipients.
+For commercial deployments, the copyright owner may provide a separate agreement specifying governing law, venue, jurisdiction, payment terms, support, and additional restrictions.
 
 ---
 
-COPYRIGHT
+28. WRITTEN AUTHORIZATION
 
-Copyright © 2026 black-210.
+Any exception to this Agreement must be expressly authorized in writing by the copyright owner or an authorized representative.
 
-VULTURE is Open Source Software licensed under AGPL-3.0-or-later.
+Informal statements, comments, forum posts, repository discussions, or third-party claims do not constitute authorization unless expressly designated as such.
 
-VULTURE and associated branding are separate intellectual property and trademark matters.
+---
 
-All rights not granted by the applicable license remain with their respective owners.
+29. PRIORITY OF OWNERSHIP
+
+Nothing in this Agreement shall be interpreted as transferring ownership of VULTURE.
+
+The fundamental principle of this Agreement is:
+
+«VULTURE is licensed, not sold. Ownership of VULTURE and its protected Intellectual Property remains with the rights holder.»
+
+---
+
+30. ALL RIGHTS RESERVED
+
+Except for the limited rights expressly granted under this Agreement:
+
+ALL RIGHTS ARE RESERVED.
+
+Unauthorized copying, distribution, modification, integration, reverse engineering, creation of derivative works, creation of Forks, or commercial exploitation is prohibited to the maximum extent permitted by applicable law.
+
+---
+
+31. COPYRIGHT NOTICE
+
+VULTURE
+Copyright © 2026 black-210. All Rights Reserved.
+
+VULTURE is proprietary closed-source software.
+
+No permission is granted to copy, modify, distribute, fork, sublicense, commercially integrate, reverse engineer, or create derivative works except pursuant to an explicit written license.
+
+---
+
+32. FINAL LICENSE STATEMENT
+
+By using VULTURE, you acknowledge that:
+
+1. VULTURE is proprietary software.
+2. The source code is not publicly licensed.
+3. Ownership is retained by the copyright holder.
+4. A license to use the software does not transfer ownership.
+5. Forking is prohibited without written authorization.
+6. Unauthorized modification is prohibited.
+7. Unauthorized derivative works are prohibited.
+8. Unauthorized commercial integration is prohibited.
+9. Unauthorized redistribution is prohibited.
+10. Unauthorized extraction or disclosure of proprietary materials is prohibited.
+11. Trademark and project identity rights remain reserved.
+12. Trade-secret and confidentiality protections remain applicable where legally available.
+13. Any rights not expressly granted are reserved.
+
+END OF VULTURE PROPRIETARY LICENSE v1.0
