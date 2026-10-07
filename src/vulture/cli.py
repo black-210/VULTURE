@@ -1,14 +1,29 @@
-"""VULTURE CLI with truthful, offline science and forensic capabilities.
+"""VULTURE CLI with comprehensive offline science and forensic capabilities.
 
-The interactive prompt is intentionally a friendly ``>`` shell that exposes
-real, local calculations and forensic audit checks. It does not scan live
-systems, transmit RF, or attack targets.
+The CLI exposes real, deterministic, local calculations and forensic audit checks.
+It does not scan live systems, transmit RF, or attack targets.
+
+Main command groups:
+- vulture info              Platform capabilities
+- vulture status            Runtime status (offline-only)
+- vulture chemical-rf       Chemistry and RF analysis
+- vulture forensic          Forensic evidence audit
+- vulture rf-dna            RF fingerprinting and DNA analysis
+- vulture rf-vuln           RF physical vulnerability forensics
+- vulture rf-security       RF security threat detection
+- vulture chemical-vuln     Chemical vulnerability assessment
+- vulture lab               Authorized simulations (synthetic data only)
+- vulture iq                IQ file conversion and operations
+- vulture offline           Standalone analysis tools
+- vulture --interactive     Interactive command prompt
 """
 from __future__ import annotations
 
 import json
 import shlex
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Optional
 
 import click
 import numpy as np
@@ -17,78 +32,58 @@ from vulture.forensics import audit_chemistry, audit_mathematics, audit_physics,
 from vulture.lab_cli import lab_cli
 from vulture.offline_tools.cli import offline_cli
 from vulture.iq_cli import iq
+from vulture.rf_vulnerability import (
+    assess_rf_physical_vulnerability,
+    CaptureMetadata,
+    generate_rf_forensic_report,
+)
+from vulture.rf_security import analyze_rf_security_threats, generate_security_threat_report
+from vulture.chemical_vulnerability import (
+    assess_chemical_vulnerability,
+    generate_chemical_forensic_report,
+)
 
 
 def _load_capture(path: str) -> tuple[np.ndarray, float]:
     """Load IQ data from NPZ or IQ file, returning (samples, sample_rate)."""
-    file_path = Path(path)
-    
-    if not file_path.exists():
+    path_obj = Path(path)
+    if not path_obj.exists():
         raise FileNotFoundError(f"Capture file not found: {path}")
     
-    if file_path.suffix.lower() == ".npz":
-        # Load NPZ archive
-        data = np.load(file_path)
-        samples = data.get("iq")
-        if samples is None:
-            raise ValueError(f"NPZ file missing 'iq' array: {path}")
-        sample_rate = float(data.get("sample_rate", 1_000_000))
-        return samples, sample_rate
-    
-    elif file_path.suffix.lower() == ".iq":
-        # Load canonical IQ file
+    if path_obj.suffix.lower() == ".npz":
+        with np.load(path) as data:
+            if "iq" not in data:
+                raise ValueError("NPZ file must contain 'iq' array")
+            samples = np.asarray(data["iq"], dtype=np.complex128)
+            sample_rate = float(data.get("sample_rate", 1_000_000.0))
+    elif path_obj.suffix.lower() == ".iq":
         from vulture.sdr_iq_framework.partition import read_iq_file
-        samples, sample_rate = read_iq_file(file_path)
+        samples, sample_rate = read_iq_file(path)
         if sample_rate is None:
             raise ValueError(
-                f"""Missing IQ sample-rate metadata
-
-The input file:
-  {path}
-
-requires a JSON sidecar:
-  {Path(path).with_suffix(".json")}
-
-Example:
-  {{
-    "sample_rate": 1000000.0
-  }}
-
-Create it:
-  printf '{{"sample_rate":1000000.0}}\\n' > {Path(path).with_suffix(".json")}
-
-Then run:
-  vulture chemical-rf material \\
-    --input {path} \\
-    --epsilon-r 4.2 \\
-    --conductivity 0.01 \\
-    --frequency-hz 2.4e9 \\
-    --length-m 0.1
-
-Why?
-The IQ samples do not contain their sample rate.
-VULTURE requires it to interpret the capture correctly."""
+                f"Could not determine sample rate from {path}.\n"
+                f"Create a sidecar JSON file with sample rate:\n"
+                f'  echo {{"sample_rate": 1000000}} > {path_obj.with_suffix(".json")}\n'
+                f"Or use --sample-rate flag."
             )
-        return samples, sample_rate
-    
     else:
-        raise ValueError(f"Unsupported format: {file_path.suffix}. Use .npz or .iq files.")
+        raise ValueError(f"Unsupported format: {path_obj.suffix}. Use .npz or .iq files.")
+    
+    return samples, float(sample_rate)
 
 
 @click.group(invoke_without_command=True)
 @click.option("--interactive", is_flag=True, help="Open the interactive > prompt.")
 @click.pass_context
 def cli(ctx: click.Context, interactive: bool) -> None:
-    """🦅 VULTURE — offline RF, chemistry, physics, mathematics and evidence audit CLI."""
+    """🦅 VULTURE — Offline RF, chemistry, physics, mathematics & forensic audit CLI."""
     if interactive:
         InteractiveShell().run()
     elif ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
 
-# Register every maintained command group in the canonical console entry point.
-# These groups previously existed as independent Click modules but were not
-# reachable through ``vulture``.
+# Register command groups
 cli.add_command(lab_cli, name="lab")
 cli.add_command(iq, name="iq")
 cli.add_command(offline_cli, name="offline")
@@ -96,475 +91,542 @@ cli.add_command(offline_cli, name="offline")
 
 @cli.command()
 def info() -> None:
-    """Display platform capabilities."""
-    click.echo("🦅 VULTURE")
-    click.echo("Science: chemistry • physics • mathematics • RF")
-    click.echo("Forensics: offline audit of supplied evidence only")
-    click.echo("Formats supported: .npz, .iq (all analysis commands)")
-    click.echo("RF-DNA: vulture rf-dna --help")
-    click.echo("Chemical-RF: vulture chemical-rf --help")
-    click.echo("Forensic: vulture forensic --help")
-    click.echo("IQ: vulture iq --help (convert .iq ↔ .npz)")
-    click.echo("Offline analysis: vulture offline --help")
-    click.echo("Lab: vulture lab --help")
-    click.echo("Interactive: vulture --interactive")
+    """Display platform capabilities and available modules."""
+    click.echo("🦅 VULTURE — Offline Scientific Intelligence Platform")
+    click.echo("")
+    click.echo("Science modules:")
+    click.echo("  • Chemistry (Chemical-RF, molecular analysis, spectroscopy)")
+    click.echo("  • Physics (RF, path loss, wavelength, field strength)")
+    click.echo("  • Mathematics (linear systems, numerical validation)")
+    click.echo("  • RF-DNA (fingerprinting, simulation, reporting)")
+    click.echo("")
+    click.echo("Security & Vulnerability:")
+    click.echo("  • RF Physical Vulnerability (path loss, field strength, forensics)")
+    click.echo("  • RF Security Threats (jamming, spoofing, hijacking detection)")
+    click.echo("  • Chemical Vulnerability (composition risk assessment)")
+    click.echo("")
+    click.echo("Forensic & Audit:")
+    click.echo("  • Offline evidence audit (physics, chemistry, math, protocol)")
+    click.echo("  • Evidence hashing and chain-of-custody")
+    click.echo("  • JSON and text report generation")
+    click.echo("")
+    click.echo("Data handling:")
+    click.echo("  • IQ file formats: .iq (complex64), .npz (NumPy arrays)")
+    click.echo("  • SDR support: receive-only mode (no transmit)")
+    click.echo("")
+    click.echo("Quick help:")
+    click.echo("  vulture status                          # Runtime status")
+    click.echo("  vulture chemical-rf --help              # Chemistry & RF")
+    click.echo("  vulture rf-vuln --help                  # RF vulnerability")
+    click.echo("  vulture rf-security --help              # RF threat detection")
+    click.echo("  vulture chemical-vuln --help            # Chemical risk")
+    click.echo("  vulture forensic --help                 # Forensic audit")
+    click.echo("  vulture rf-dna --help                   # RF fingerprinting")
+    click.echo("  vulture lab --help                      # Lab simulations")
+    click.echo("  vulture iq --help                       # IQ file tools")
+    click.echo("  vulture --interactive                   # Interactive prompt")
 
 
 @cli.command()
 def status() -> None:
-    """Show safe runtime status."""
+    """Show safe runtime status and capabilities."""
     payload = {
-        "cli": "online",
-        "mode": "offline-deterministic",
-        "hardware": "not-opened",
-        "network": "disabled",
-        "rf_transmit": "disabled",
-        "analysis": "local-only",
-        "rf_dna_command": "vulture rf-dna",
-        "capture_formats": ["npz", "iq"],
-        "forensic_formats": ["npz", "iq"]
+        "platform": "VULTURE",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "runtime_status": {
+            "cli": "online",
+            "mode": "offline-deterministic",
+            "hardware_access": "disabled",
+            "network_access": "disabled",
+            "rf_transmission": "disabled",
+            "chemical_synthesis": "disabled",
+            "analysis_mode": "local-only",
+        },
+        "supported_formats": {
+            "capture": [".iq", ".npz", ".npy"],
+            "metadata": [".json"],
+        },
+        "sdr_mode": "receive-only",
+        "main_commands": {
+            "scientific": ["chemical-rf", "forensic", "rf-dna"],
+            "security": ["rf-vuln", "rf-security", "chemical-vuln"],
+            "utilities": ["iq", "offline", "lab"],
+            "interactive": "vulture --interactive",
+        },
     }
     click.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
-@cli.group("chemical-rf")
-def chemical_rf() -> None:
-    """Chemistry and RF analysis commands operating on NPZ or IQ captures."""
+# ============================================================================
+# RF VULNERABILITY & FORENSICS GROUP
+# ============================================================================
+
+@cli.group("rf-vuln")
+def rf_vuln() -> None:
+    """RF physical vulnerability and forensic analysis from local captures."""
 
 
-@chemical_rf.command("nmr")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="NPZ or IQ capture file")
-@click.option("--nucleus", default="1H", show_default=True)
-@click.option("--field-t", default=7.0, type=float, show_default=True)
-def chemical_rf_nmr(input_path: str, nucleus: str, field_t: float) -> None:
-    """Calculate Larmor frequency from capture file (NPZ or IQ) metadata."""
-    from vulture.chemical_rf.spectroscopy import larmor_frequency_hz
+@rf_vuln.command("physical-check")
+@click.option("--case-id", required=True, help="Forensic case identifier")
+@click.option("--subject", required=True, help="Device or subject under assessment")
+@click.option("--frequency-hz", required=True, type=float, help="Operating frequency in Hz")
+@click.option("--distance-m", required=True, type=float, help="Distance in meters")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), default=None, help="IQ capture file (.iq or .npz)")
+@click.option("--sample-rate", type=float, default=None, help="Sample rate in Hz (for .iq files)")
+@click.option("--tx-power-dbm", default=20.0, type=float, show_default=True, help="Transmit power assumption (dBm)")
+@click.option("--bandwidth-hz", type=float, default=None, help="Signal bandwidth in Hz")
+@click.option("--exposure-risk", default=1.0, type=float, show_default=True, help="Exposure multiplier")
+@click.option("--environment-factor", default=1.0, type=float, show_default=True, help="Environment multiplier")
+@click.option("--sdr-receive", is_flag=True, default=False, help="Use receive-only SDR mode")
+@click.option("--sdr-center-frequency-hz", type=float, default=None, help="SDR center frequency")
+@click.option("--sdr-device-args", default=None, help="SoapySDR device string")
+@click.option("--sdr-gain", type=float, default=None, help="SDR receiver gain")
+@click.option("--output", type=click.Path(dir_okay=False), default=None, help="Output report file")
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True, help="Report format")
+def rf_vuln_check(
+    case_id: str,
+    subject: str,
+    frequency_hz: float,
+    distance_m: float,
+    input_path: Optional[str],
+    sample_rate: Optional[float],
+    tx_power_dbm: float,
+    bandwidth_hz: Optional[float],
+    exposure_risk: float,
+    environment_factor: float,
+    sdr_receive: bool,
+    sdr_center_frequency_hz: Optional[float],
+    sdr_device_args: Optional[str],
+    sdr_gain: Optional[float],
+    output: Optional[str],
+    fmt: str,
+) -> None:
+    """Assess RF physical vulnerability from local capture or SDR receive-only mode."""
+    if input_path is not None and sdr_receive:
+        raise click.BadParameter("Choose either --input or --sdr-receive, not both")
     
-    samples, sample_rate = _load_capture(input_path)
+    capture_metadata = None
+    if input_path is not None:
+        capture_metadata = CaptureMetadata.from_path(input_path, sample_rate=sample_rate)
     
-    # Calculate Larmor frequency
-    freq_hz = larmor_frequency_hz(nucleus, field_t)
-    
-    result = {
-        "input": str(input_path),
-        "input_format": Path(input_path).suffix.lower().lstrip("."),
-        "samples_count": int(samples.size),
-        "captured_sample_rate": sample_rate,
-        "nucleus": nucleus,
-        "field_t": field_t,
-        "frequency_hz": freq_hz
-    }
-    click.echo(json.dumps(result, indent=2, sort_keys=True))
-
-
-@chemical_rf.command("material")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="NPZ or IQ capture file")
-@click.option("--epsilon-r", required=True, type=float)
-@click.option("--conductivity", default=0.0, type=float, show_default=True)
-@click.option("--frequency-hz", required=True, type=float)
-@click.option("--length-m", required=True, type=float)
-def chemical_rf_material(input_path: str, epsilon_r: float, conductivity: float, frequency_hz: float, length_m: float) -> None:
-    """Analyze material properties against capture file (NPZ or IQ) metadata."""
-    from vulture.chemical_rf.materials import complex_permittivity, dielectric_resonance_frequency
-    
-    samples, sample_rate = _load_capture(input_path)
-    
-    # Calculate material properties
-    epsilon = complex_permittivity(epsilon_r, conductivity, frequency_hz)
-    resonance = dielectric_resonance_frequency(epsilon_r, length_m)
-    
-    result = {
-        "input": str(input_path),
-        "input_format": Path(input_path).suffix.lower().lstrip("."),
-        "samples_count": int(samples.size),
-        "captured_sample_rate": sample_rate,
-        "permittivity": {
-            "real": epsilon.real,
-            "imag": epsilon.imag
-        },
-        "resonance_hz": resonance,
-        "material": {
-            "epsilon_r": epsilon_r,
-            "conductivity": conductivity,
-            "length_m": length_m
-        }
-    }
-    click.echo(json.dumps(result, indent=2, sort_keys=True))
-
-
-@chemical_rf.command("physics")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="NPZ or IQ capture file")
-@click.option("--frequency-hz", required=True, type=float)
-@click.option("--distance-m", required=True, type=float)
-def chemical_rf_physics(input_path: str, frequency_hz: float, distance_m: float) -> None:
-    """Calculate RF physics properties with capture file (NPZ or IQ) context."""
-    from vulture.chemical_rf.science import free_space_path_loss_db, wavelength_m
-    
-    samples, sample_rate = _load_capture(input_path)
-    
-    # Calculate RF physics
-    wavelength = wavelength_m(frequency_hz)
-    path_loss = free_space_path_loss_db(frequency_hz, distance_m)
-    
-    result = {
-        "input": str(input_path),
-        "input_format": Path(input_path).suffix.lower().lstrip("."),
-        "samples_count": int(samples.size),
-        "captured_sample_rate": sample_rate,
-        "frequency_hz": frequency_hz,
-        "distance_m": distance_m,
-        "wavelength_m": wavelength,
-        "path_loss_db": path_loss
-    }
-    click.echo(json.dumps(result, indent=2, sort_keys=True))
-
-
-@chemical_rf.command("report")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="NPZ or IQ capture file")
-@click.option("--sample-id", required=True)
-@click.option("--real-ohm", required=True, type=float)
-@click.option("--imag-ohm", required=True, type=float)
-def chemical_rf_report(input_path: str, sample_id: str, real_ohm: float, imag_ohm: float) -> None:
-    """Create impedance analysis report linked to capture file (NPZ or IQ)."""
-    from vulture.chemical_rf.pipeline import ChemicalRFAnalysisPipeline
-    
-    samples, sample_rate = _load_capture(input_path)
-    
-    # Generate report
-    pipeline = ChemicalRFAnalysisPipeline()
-    analysis = pipeline.analyze_impedance(
-        sample_id,
-        complex(real_ohm, imag_ohm),
-        {"frequency_hz": 2_400_000_000, "source": str(input_path)}
+    assessment = assess_rf_physical_vulnerability(
+        case_id=case_id,
+        subject=subject,
+        frequency_hz=frequency_hz,
+        distance_m=distance_m,
+        input_path=input_path,
+        sample_rate=sample_rate,
+        tx_power_dbm=tx_power_dbm,
+        bandwidth_hz=bandwidth_hz,
+        exposure_risk=exposure_risk,
+        environment_factor=environment_factor,
+        sdr_receive=sdr_receive,
+        sdr_center_frequency_hz=sdr_center_frequency_hz,
+        sdr_device_args=sdr_device_args,
+        sdr_gain=sdr_gain,
     )
     
-    result = analysis.to_dict()
-    result["input"] = str(input_path)
-    result["input_format"] = Path(input_path).suffix.lower().lstrip(".")
-    result["samples_count"] = int(samples.size)
-    result["captured_sample_rate"] = sample_rate
+    if fmt == "json":
+        report = assessment.to_json()
+    else:
+        report = generate_rf_forensic_report(assessment)
     
-    click.echo(json.dumps(result, indent=2, sort_keys=True))
+    if output:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        Path(output).write_text(report + ("\n" if not report.endswith("\n") else ""), encoding="utf-8")
+        click.echo(f"Report written to {output}")
+    else:
+        click.echo(report)
 
 
-@cli.group("rf-dna")
-def rf_dna() -> None:
-    """Integrated receive-only RF-DNA simulation, analysis, and reporting commands."""
-
-
-def _run_rf_dna(args: tuple[str, ...]) -> None:
-    """Forward integrated commands to the existing RF-DNA Click group."""
-    from vulture.rf_dna.cli import cli as rf_dna_cli
-    rf_dna_cli.main(list(args), standalone_mode=False)
-
-
-@rf_dna.command("status")
-def rf_dna_status() -> None:
-    """Show RF-DNA capabilities through the main VULTURE command."""
-    _run_rf_dna(("status",))
-
-
-@rf_dna.command("simulate")
-@click.option("--profile", default="noise", show_default=True)
-@click.option("--duration", type=float, default=1.0, show_default=True)
-@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
-@click.option("--seed", type=int, default=7, show_default=True)
+@rf_vuln.command("report")
+@click.option("--case-id", required=True)
+@click.option("--subject", required=True)
+@click.option("--frequency-hz", required=True, type=float)
+@click.option("--distance-m", required=True, type=float)
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), default=None)
+@click.option("--sample-rate", type=float, default=None)
 @click.option("--output", type=click.Path(dir_okay=False), required=True)
-def rf_dna_simulate(profile: str, duration: float, sample_rate: float, seed: int, output: str) -> None:
-    """Generate a deterministic local IQ fixture without hardware or network access."""
-    _run_rf_dna(("simulate", "--profile", profile, "--duration", str(duration), "--sample-rate", str(sample_rate), "--seed", str(seed), "--output", output))
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="txt", show_default=True)
+def rf_vuln_report(
+    case_id: str,
+    subject: str,
+    frequency_hz: float,
+    distance_m: float,
+    input_path: Optional[str],
+    sample_rate: Optional[float],
+    output: str,
+    fmt: str,
+) -> None:
+    """Generate a forensic RF vulnerability report and save to file."""
+    capture_metadata = None
+    if input_path is not None:
+        capture_metadata = CaptureMetadata.from_path(input_path, sample_rate=sample_rate)
+    
+    assessment = assess_rf_physical_vulnerability(
+        case_id=case_id,
+        subject=subject,
+        frequency_hz=frequency_hz,
+        distance_m=distance_m,
+        input_path=input_path,
+        sample_rate=sample_rate,
+    )
+    
+    if fmt == "json":
+        report = assessment.to_json()
+    else:
+        report = generate_rf_forensic_report(assessment)
+    
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
+    Path(output).write_text(report + "\n", encoding="utf-8")
+    click.echo(f"✓ Report saved to {output}")
 
 
-@rf_dna.command("fingerprint")
+# ============================================================================
+# RF SECURITY THREAT DETECTION GROUP
+# ============================================================================
+
+@cli.group("rf-security")
+def rf_security() -> None:
+    """RF security threat detection and analysis from captured IQ data."""
+
+
+@rf_security.command("analyze")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--subject", required=True, help="Subject device name")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="IQ capture file")
+@click.option("--sample-rate", type=float, default=None, help="Sample rate (for .iq files)")
+@click.option("--output", type=click.Path(dir_okay=False), default=None, help="Output report file")
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
+def rf_security_analyze(
+    case_id: str,
+    subject: str,
+    input_path: str,
+    sample_rate: Optional[float],
+    output: Optional[str],
+    fmt: str,
+) -> None:
+    """Analyze IQ capture for RF security threats (jamming, spoofing, hijacking, etc.)."""
+    samples, rate = _load_capture(input_path)
+    if sample_rate is not None:
+        rate = sample_rate
+    
+    duration_s = len(samples) / rate if rate > 0 else 0.0
+    
+    analysis = analyze_rf_security_threats(
+        case_id=case_id,
+        subject=subject,
+        samples=samples,
+        sample_rate=rate,
+        duration_s=duration_s,
+    )
+    
+    if fmt == "json":
+        report = analysis.to_json()
+    else:
+        report = generate_security_threat_report(analysis)
+    
+    if output:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        Path(output).write_text(report + ("\n" if not report.endswith("\n") else ""), encoding="utf-8")
+        click.echo(f"✓ Threat analysis saved to {output}")
+    else:
+        click.echo(report)
+
+
+@rf_security.command("report")
+@click.option("--case-id", required=True)
+@click.option("--subject", required=True)
 @click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
-@click.option("--label", default="unlabelled", show_default=True)
-def rf_dna_fingerprint(input_path: str, label: str) -> None:
-    """Extract a descriptive fingerprint from a local NPZ capture."""
-    _run_rf_dna(("fingerprint", "--input", input_path, "--label", label))
+@click.option("--sample-rate", type=float, default=None)
+@click.option("--output", type=click.Path(dir_okay=False), required=True)
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="txt", show_default=True)
+def rf_security_report(
+    case_id: str,
+    subject: str,
+    input_path: str,
+    sample_rate: Optional[float],
+    output: str,
+    fmt: str,
+) -> None:
+    """Generate a plain-text RF security threat report."""
+    samples, rate = _load_capture(input_path)
+    if sample_rate is not None:
+        rate = sample_rate
+    
+    analysis = analyze_rf_security_threats(
+        case_id=case_id,
+        subject=subject,
+        samples=samples,
+        sample_rate=rate,
+        duration_s=len(samples) / rate if rate > 0 else 0.0,
+    )
+    
+    if fmt == "json":
+        report = analysis.to_json()
+    else:
+        report = generate_security_threat_report(analysis)
+    
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
+    Path(output).write_text(report + "\n", encoding="utf-8")
+    click.echo(f"✓ Report saved to {output}")
 
 
-@rf_dna.command("dashboard")
+# ============================================================================
+# CHEMICAL VULNERABILITY GROUP
+# ============================================================================
+
+@cli.group("chemical-vuln")
+def chemical_vuln() -> None:
+    """Chemical composition vulnerability and risk assessment."""
+
+
+@chemical_vuln.command("assess")
+@click.option("--case-id", required=True, help="Case identifier")
+@click.option("--subject", required=True, help="Sample or mixture name")
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="JSON file with compound metadata")
+@click.option("--exposure-window-h", default=8.0, type=float, show_default=True, help="Exposure window in hours")
+@click.option("--environment-factor", default=1.0, type=float, show_default=True, help="Environment risk multiplier")
+@click.option("--output", type=click.Path(dir_okay=False), default=None, help="Output report file")
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
+def chemical_vuln_assess(
+    case_id: str,
+    subject: str,
+    input_path: str,
+    exposure_window_h: float,
+    environment_factor: float,
+    output: Optional[str],
+    fmt: str,
+) -> None:
+    """Assess chemical composition for vulnerability from low to critical."""
+    compounds_data = json.loads(Path(input_path).read_text(encoding="utf-8"))
+    
+    assessment = assess_chemical_vulnerability(
+        case_id=case_id,
+        subject=subject,
+        compounds=compounds_data,
+        exposure_window_h=exposure_window_h,
+        environment_factor=environment_factor,
+    )
+    
+    if fmt == "json":
+        report = assessment.to_json()
+    else:
+        report = generate_chemical_forensic_report(assessment)
+    
+    if output:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        Path(output).write_text(report + ("\n" if not report.endswith("\n") else ""), encoding="utf-8")
+        click.echo(f"✓ Assessment saved to {output}")
+    else:
+        click.echo(report)
+
+
+@chemical_vuln.command("report")
+@click.option("--case-id", required=True)
+@click.option("--subject", required=True)
 @click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
-@click.option("--label", default="dashboard-capture", show_default=True)
-def rf_dna_dashboard(input_path: str, label: str) -> None:
-    """Create a dashboard and provenance summary from a local capture."""
-    _run_rf_dna(("dashboard", "--input", input_path, "--label", label))
+@click.option("--exposure-window-h", default=8.0, type=float, show_default=True)
+@click.option("--environment-factor", default=1.0, type=float, show_default=True)
+@click.option("--output", type=click.Path(dir_okay=False), required=True)
+@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="txt", show_default=True)
+def chemical_vuln_report(
+    case_id: str,
+    subject: str,
+    input_path: str,
+    exposure_window_h: float,
+    environment_factor: float,
+    output: str,
+    fmt: str,
+) -> None:
+    """Generate a chemical vulnerability forensic report."""
+    compounds_data = json.loads(Path(input_path).read_text(encoding="utf-8"))
+    
+    assessment = assess_chemical_vulnerability(
+        case_id=case_id,
+        subject=subject,
+        compounds=compounds_data,
+        exposure_window_h=exposure_window_h,
+        environment_factor=environment_factor,
+    )
+    
+    if fmt == "json":
+        report = assessment.to_json()
+    else:
+        report = generate_chemical_forensic_report(assessment)
+    
+    Path(output).parent.mkdir(parents=True, exist_ok=True)
+    Path(output).write_text(report + "\n", encoding="utf-8")
+    click.echo(f"✓ Report saved to {output}")
 
 
-@rf_dna.command("report")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
-@click.option("--label", default="capture-report", show_default=True)
-def rf_dna_report(input_path: str, label: str) -> None:
-    """Create a machine-readable local RF-DNA report."""
-    _run_rf_dna(("report", "--input", input_path, "--label", label))
-
-
-@rf_dna.command("quantum")
-@click.option("--profile", default="multi-tone", show_default=True)
-@click.option("--duration", type=float, default=2.0, show_default=True)
-@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
-@click.option("--seed", type=int, default=7, show_default=True)
-def rf_dna_quantum(profile: str, duration: float, sample_rate: float, seed: int) -> None:
-    """Run a local quantum-inspired experiment with a classical baseline."""
-    _run_rf_dna(("quantum", "--profile", profile, "--duration", str(duration), "--sample-rate", str(sample_rate), "--seed", str(seed)))
-
-
-@rf_dna.command("backends")
-def rf_dna_backends() -> None:
-    """Report optional receive backends without probing hardware or networks."""
-    _run_rf_dna(("backends",))
-
+# ============================================================================
+# FORENSIC AUDIT GROUP (existing)
+# ============================================================================
 
 @cli.group("forensic")
 def forensic() -> None:
-    """Offline evidence audit commands supporting NPZ and IQ capture files."""
+    """Offline forensic evidence audit commands."""
 
 
 @forensic.command("physics")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
-@click.option("--frequency-hz", required=True, type=float)
-@click.option("--distance-m", required=True, type=float)
+@click.option("--frequency-hz", type=float, required=True)
+@click.option("--distance-m", type=float, required=True)
 @click.option("--bandwidth-hz", type=float, default=None)
-@click.option("--output", type=click.Path(dir_okay=False), default=None)
-@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_physics(input_path: str | None, case_id: str, subject: str, frequency_hz: float, distance_m: float, bandwidth_hz: float | None, output: str | None, fmt: str) -> None:
-    """Audit local physical measurement metadata linked to capture file (NPZ/IQ optional)."""
-    from vulture.forensics import write_report
-    
-    # Load capture if provided
-    capture_info = {}
-    if input_path:
-        samples, sample_rate = _load_capture(input_path)
-        capture_info = {
-            "capture_input": str(input_path),
-            "capture_format": Path(input_path).suffix.lower().lstrip("."),
-            "capture_samples": int(samples.size),
-            "capture_sample_rate": sample_rate
-        }
-    
-    report = audit_physics(case_id, subject, frequency_hz=frequency_hz, distance_m=distance_m, bandwidth_hz=bandwidth_hz)
-    
-    if output:
-        write_report(report, output, fmt)
-    
-    # Enrich output with capture info
-    output_text = report.to_json() if fmt == "json" else report.to_text()
-    if capture_info and fmt == "json":
-        try:
-            data = json.loads(output_text)
-            data.update(capture_info)
-            output_text = json.dumps(data, indent=2, sort_keys=True)
-        except:
-            pass
-    
-    click.echo(output_text)
+def forensic_physics(case_id: str, subject: str, frequency_hz: float, distance_m: float, bandwidth_hz: Optional[float]) -> None:
+    """Audit RF physics parameters."""
+    report = audit_physics(
+        case_id=case_id,
+        subject=subject,
+        frequency_hz=frequency_hz,
+        distance_m=distance_m,
+        bandwidth_hz=bandwidth_hz,
+    )
+    click.echo(report.to_json() if hasattr(report, "to_json") else report.to_text())
 
 
 @forensic.command("chemistry")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
-@click.option("--compounds-json", required=True)
-@click.option("--output", type=click.Path(dir_okay=False), default=None)
-@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_chemistry(input_path: str | None, case_id: str, subject: str, compounds_json: str, output: str | None, fmt: str) -> None:
-    """Audit local compound composition linked to capture file (NPZ/IQ optional)."""
-    from vulture.forensics import write_report
-    
-    # Load capture if provided
-    capture_info = {}
-    if input_path:
-        samples, sample_rate = _load_capture(input_path)
-        capture_info = {
-            "capture_input": str(input_path),
-            "capture_format": Path(input_path).suffix.lower().lstrip("."),
-            "capture_samples": int(samples.size),
-            "capture_sample_rate": sample_rate
-        }
-    
-    report = audit_chemistry(case_id, subject, json.loads(compounds_json))
-    
-    if output:
-        write_report(report, output, fmt)
-    
-    # Enrich output with capture info
-    output_text = report.to_json() if fmt == "json" else report.to_text()
-    if capture_info and fmt == "json":
-        try:
-            data = json.loads(output_text)
-            data.update(capture_info)
-            output_text = json.dumps(data, indent=2, sort_keys=True)
-        except:
-            pass
-    
-    click.echo(output_text)
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+def forensic_chemistry(case_id: str, subject: str, input_path: str) -> None:
+    """Audit chemical composition."""
+    compounds_data = json.loads(Path(input_path).read_text(encoding="utf-8"))
+    report = audit_chemistry(case_id=case_id, subject=subject, compounds=compounds_data)
+    click.echo(report.to_json() if hasattr(report, "to_json") else report.to_text())
 
 
 @forensic.command("math")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
-@click.option("--matrix-json", required=True)
-@click.option("--vector-json", required=True)
-@click.option("--output", type=click.Path(dir_okay=False), default=None)
-@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_math(input_path: str | None, case_id: str, subject: str, matrix_json: str, vector_json: str, output: str | None, fmt: str) -> None:
-    """Audit local linear system linked to capture file (NPZ/IQ optional)."""
-    from vulture.forensics import write_report
-    
-    # Load capture if provided
-    capture_info = {}
-    if input_path:
-        samples, sample_rate = _load_capture(input_path)
-        capture_info = {
-            "capture_input": str(input_path),
-            "capture_format": Path(input_path).suffix.lower().lstrip("."),
-            "capture_samples": int(samples.size),
-            "capture_sample_rate": sample_rate
-        }
-    
-    report = audit_mathematics(case_id, subject, json.loads(matrix_json), json.loads(vector_json))
-    
-    if output:
-        write_report(report, output, fmt)
-    
-    # Enrich output with capture info
-    output_text = report.to_json() if fmt == "json" else report.to_text()
-    if capture_info and fmt == "json":
-        try:
-            data = json.loads(output_text)
-            data.update(capture_info)
-            output_text = json.dumps(data, indent=2, sort_keys=True)
-        except:
-            pass
-    
-    click.echo(output_text)
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+def forensic_math(case_id: str, subject: str, input_path: str) -> None:
+    """Audit mathematical systems."""
+    data = json.loads(Path(input_path).read_text(encoding="utf-8"))
+    report = audit_mathematics(case_id=case_id, subject=subject, matrix=data["matrix"], vector=data["vector"])
+    click.echo(report.to_json() if hasattr(report, "to_json") else report.to_text())
 
 
 @forensic.command("protocol")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=False, help="NPZ or IQ capture file (optional)")
 @click.option("--case-id", required=True)
 @click.option("--subject", required=True)
-@click.option("--frames-json", required=True)
-@click.option("--output", type=click.Path(dir_okay=False), default=None)
-@click.option("--format", "fmt", type=click.Choice(["json", "txt"]), default="json", show_default=True)
-def forensic_protocol(input_path: str | None, case_id: str, subject: str, frames_json: str, output: str | None, fmt: str) -> None:
-    """Audit protocol metadata linked to capture file (NPZ/IQ optional)."""
-    from vulture.forensics import write_report
-    
-    # Load capture if provided
-    capture_info = {}
-    if input_path:
-        samples, sample_rate = _load_capture(input_path)
-        capture_info = {
-            "capture_input": str(input_path),
-            "capture_format": Path(input_path).suffix.lower().lstrip("."),
-            "capture_samples": int(samples.size),
-            "capture_sample_rate": sample_rate
-        }
-    
-    report = audit_protocol(case_id, subject, json.loads(frames_json))
-    
-    if output:
-        write_report(report, output, fmt)
-    
-    # Enrich output with capture info
-    output_text = report.to_json() if fmt == "json" else report.to_text()
-    if capture_info and fmt == "json":
-        try:
-            data = json.loads(output_text)
-            data.update(capture_info)
-            output_text = json.dumps(data, indent=2, sort_keys=True)
-        except:
-            pass
-    
-    click.echo(output_text)
+@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True)
+def forensic_protocol(case_id: str, subject: str, input_path: str) -> None:
+    """Audit protocol frames."""
+    frames_data = json.loads(Path(input_path).read_text(encoding="utf-8"))
+    report = audit_protocol(case_id=case_id, subject=subject, frames=frames_data)
+    click.echo(report.to_json() if hasattr(report, "to_json") else report.to_text())
 
+
+# ============================================================================
+# INTERACTIVE SHELL
+# ============================================================================
 
 class InteractiveShell:
-    """Friendly interactive prompt for the scientific and forensic toolset."""
-
-    def __init__(self) -> None:
+    """Interactive CLI shell with convenient command access."""
+    
+    def __init__(self):
         self.running = True
-        self.history: list[str] = []
-
-    @staticmethod
-    def banner() -> None:
-        click.echo("══════════════════════════════════════════════════════════")
-        click.echo("🦅 VULTURE — Offline Scientific Intelligence Platform")
-        click.echo("Supports .iq and .npz • chemistry • physics • forensics")
-        click.echo("Type: help | status | forensic physics | exit")
-        click.echo("══════════════════════════════════════════════════════════")
-
+        self.history = []
+    
     def run(self) -> None:
         self.banner()
         while self.running:
             try:
-                cmd = click.prompt(">", prompt_suffix=" ", show_default=False)
+                cmd = click.prompt(">", prompt_suffix=" ")
             except (EOFError, KeyboardInterrupt):
-                click.echo()
+                click.echo("")
                 break
             self.process(cmd)
-
+    
+    def banner(self) -> None:
+        click.echo("")
+        click.echo("╔════════════════════════════════════════════════════════════╗")
+        click.echo("║  🦅 VULTURE — Interactive Scientific & Forensic Shell     ║")
+        click.echo("║  Offline, deterministic, evidence-based analysis          ║")
+        click.echo("║  Type 'help' for command list, 'exit' to quit             ║")
+        click.echo("╚════════════════════════════════════════════════════════════╝")
+        click.echo("")
+    
     def process(self, line: str) -> None:
         line = line.strip()
         if not line:
             return
+        
         self.history.append(line)
-        command = line.lower()
-        if command in {"exit", "quit"}:
+        
+        if line in ("quit", "exit"):
             self.running = False
             click.echo("✓ Session closed safely.")
             return
-        if command in {"help", "?"}:
-            click.echo("Available commands:")
-            click.echo("  info")
-            click.echo("  status")
-            click.echo("  iq convert capture.iq capture.npz")
-            click.echo("  offline analyze values.csv --sample-rate 1000000")
-            click.echo("")
-            click.echo("  Chemical-RF (supports .npz and .iq):")
-            click.echo("    chemical-rf nmr --input capture.npz --nucleus 1H --field-t 7")
-            click.echo("    chemical-rf nmr --input capture.iq --nucleus 1H --field-t 7")
-            click.echo("    chemical-rf material --input capture.npz --epsilon-r 4.2 --frequency-hz 2.4e9 --length-m 0.1")
-            click.echo("    chemical-rf physics --input capture.iq --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("    chemical-rf report --input capture.npz --sample-id S-001 --real-ohm 50 --imag-ohm 2.5")
-            click.echo("")
-            click.echo("  Forensic (supports .npz and .iq optional):")
-            click.echo("    forensic physics --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("    forensic physics --input capture.npz --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("    forensic physics --input capture.iq --case-id C-001 --subject capture --frequency-hz 2.4e9 --distance-m 10")
-            click.echo("    forensic chemistry --input capture.npz --case-id C-002 --subject sample --compounds-json '[{\"elements\":{\"H\":2,\"O\":1}}]'")
-            click.echo("    forensic math --input capture.iq --case-id C-003 --subject system --matrix-json '[[2,1],[1,1]]' --vector-json '[3,2]'")
-            click.echo("    forensic protocol --input capture.npz --case-id C-004 --subject frame --frames-json '[{\"length\":4}]'")
-            click.echo("")
-            click.echo("  RF-DNA (NPZ only):")
-            click.echo("    rf-dna status")
-            click.echo("    rf-dna simulate --profile multi-tone --duration 2 --sample-rate 1000000 --output capture.npz")
-            click.echo("    rf-dna fingerprint --input capture.npz --label lab-device-01")
-            click.echo("    rf-dna dashboard --input capture.npz")
-            click.echo("    rf-dna report --input capture.npz")
-            click.echo("    rf-dna quantum --profile multi-tone")
-            click.echo("    rf-dna backends")
-            click.echo("")
-            click.echo("  Lab (simulations):")
-            click.echo("    lab attack-sim --scenario spoofing")
-            click.echo("    lab defense-sim --scenario jamming-detection")
-            click.echo("")
-            click.echo("  history | exit")
+        
+        if line == "help":
+            self.show_help()
             return
-        if command == "history":
-            for index, item in enumerate(self.history[:-1], 1):
-                click.echo(f"{index}: {item}")
+        
+        if line == "history":
+            for idx, item in enumerate(self.history[:-1], 1):
+                click.echo(f"{idx}: {item}")
             return
+        
         try:
-            cli.main(shlex.split(line), standalone_mode=False)
+            ctx = click.Context(cli)
+            cli.main(shlex.split(line), standalone_mode=False, obj=ctx)
         except SystemExit:
             pass
-        except Exception as exc:  # pragma: no cover
-            click.echo(f"error: {exc}")
+        except Exception as exc:
+            click.echo(f"✗ Error: {exc}")
+    
+    def show_help(self) -> None:
+        lines = [
+            "",
+            "Available command groups:",
+            "  info                                   Platform capabilities",
+            "  status                                 Runtime status",
+            "",
+            "RF & Physics:",
+            "    rf-vuln physical-check               RF vulnerability assessment",
+            "    rf-vuln report                       Generate RF forensic report",
+            "    rf-security analyze                  Detect RF security threats",
+            "    rf-security report                   Generate threat report",
+            "",
+            "Chemistry:",
+            "    chemical-vuln assess                 Assess chemical risk",
+            "    chemical-vuln report                 Generate chemical report",
+            "    chemical-rf nmr                      Calculate Larmor frequency",
+            "    chemical-rf material                 Analyze material properties",
+            "",
+            "Forensics:",
+            "    forensic physics                     Audit RF physics",
+            "    forensic chemistry                   Audit chemical data",
+            "    forensic math                        Audit mathematical systems",
+            "    forensic protocol                    Audit protocol frames",
+            "",
+            "RF-DNA & Analysis:",
+            "    rf-dna status                        Check RF-DNA status",
+            "    rf-dna simulate                      Generate test capture",
+            "    rf-dna fingerprint                   Extract RF fingerprint",
+            "    rf-dna dashboard                     Build capture dashboard",
+            "    rf-dna report                        Generate RF report",
+            "    rf-dna quantum                       Run quantum baseline",
+            "",
+            "Lab (Simulations):",
+            "    lab attack-sim                       Simulate attack scenario",
+            "    lab defense-sim                      Simulate defense scenario",
+            "",
+            "File Tools:",
+            "    iq convert                           Convert .iq ↔ .npz",
+            "    offline analyze                      Standalone analysis",
+            "",
+            "Shell:",
+            "    help                                 Show this help",
+            "    history                              Show command history",
+            "    exit | quit                          Close session",
+            "",
+        ]
+        click.echo("\n".join(lines))
 
 
 if __name__ == "__main__":
