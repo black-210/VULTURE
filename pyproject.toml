@@ -41,6 +41,7 @@ dev = [
 [project.scripts]
 vulture = "vulture.cli:cli"
 vulture-chemical-rf = "vulture.chemical_rf.cli:chemical_rf_cli"
+vulture-rf-dna = "vulture.rf_dna.cli:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
