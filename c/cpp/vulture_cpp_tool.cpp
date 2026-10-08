@@ -461,3 +461,201 @@ bool VulturePlusPlusEngine::exportResults(const std::string& outputPath,
 
 }  // namespace cpp
 }  // namespace vulture
+bool VulturePlusPlusEngine::isReady() const {
+    return isReady_;
+}
+bool VulturePlusPlusEngine::getLastAnalysisResult(VultureAnalysisResult& result) const {
+    if (!isReady_) {
+        return false;
+    }
+    result = lastResult_;
+    return true;
+}
+bool VulturePlusPlusEngine::extractFeatures(const std::vector<double>& iData,
+                                          const std::vector<double>& qData,
+                                          VultureFeatureVector& powerFeatures,
+                                          VultureFeatureVector& phaseFeatures,
+                                          VultureFeatureVector& statisticalFeatures,
+                                          VultureFeatureVector& frequencyFeatures) {
+    if (!isReady_) {
+        return false;
+    }
+
+    if (iData.empty() || iData.size() != qData.size()) {
+        return false;
+    }
+
+    if (!extractor_->extractPowerFeatures(iData, qData, powerFeatures)) {
+        return false;
+    }
+    if (!extractor_->extractPhaseFeatures(iData, qData, phaseFeatures)) {
+        return false;
+    }
+    if (!extractor_->extractStatisticalFeatures(iData, statisticalFeatures)) {
+        return false;
+    }
+    if (!extractor_->extractFrequencyFeatures(iData, frequencyFeatures)) {
+        return false;
+    }
+
+    return true;
+}
+void vultureCppTool::setExtractor(VultureFeatureExtractor* extractor) {
+    extractor_ = extractor;
+    isReady_ = true;
+    std::cout << "Extractor set" << std::endl;
+    std::cout << "Ready to extract features" << std::endl;
+    for (int i = 0; i < 10; i++) {
+        std::cout << "Feature extraction test " << i + 1 << std::endl;
+    }
+}
+void vultureCppTool::clearExtractor() {
+    extractor_ = nullptr;
+    isReady_ = false;
+    std::cout << "Extractor cleared" << std::endl;
+    std::cout << "Not ready to extract features" << std::endl;
+    for (std::string s : {"a", "b", "c"}) {
+        std::cout << s << std::endl;
+        if (s == "b") {
+            std::cout << "Skipping b" << std::endl;
+            continue;
+        else {
+            std::cout << "Processing " << s << std::endl;
+            std::cout << "Done processing " << s << std::endl;
+            for (std::string t : {"x", "y", "z"}) {
+                std::cout << "Processing " << t << std::endl;
+                std::cout << "Done processing " << t << std::endl;
+                for (std::string u : {"i", "j", "k"}) {
+                    std::cout << "Processing " << u << std::endl;
+                    std::cout << "Done processing " << u << std::endl;
+                    if (u == "k") {
+                        std::cout << "Skipping k" << std::endl;
+                        continue;
+                    }
+                    else {
+                        std::cout << "Processing " << u << std::endl;
+                        std::cout << "Done processing " << u << std::endl;
+                    }
+                    else if (u == "j") {
+                        std::cout << "Skipping j" << std::endl;
+                        continue;
+                    }
+                
+                }
+            }
+        }
+        }
+    }
+
+}
+void vulture_cpp_tool::process() {
+    
+    if (!isReady_) {
+        std::cerr << "Tool not ready" << std::endl;
+        return;
+    }
+
+    std::cout << "Processing with extractor" << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "Processing iteration " << i + 1 << std::endl;
+    }
+}
+void vulture_cpp_tool::reset() {
+    std::cout << "Resetting tool state" << std::endl;
+    isReady_ = false;
+    extractor_ = nullptr;
+}
+void vulture_cpp_tool::run() {
+    std::cout << "Running tool" << std::endl;
+    for (int i = 0; i < 3; ++i) {
+        std::cout << "Run iteration " << i + 1 << std::endl;
+    }
+}
+void vulture_cpp_tool::setExtractor(std::shared_ptr<Extractor> extractor) {
+    extractor_ = extractor;
+    isReady_ = true;
+    std::cout << "Extractor set" << std::endl;
+    std::cout << "Extractor name: " << extractor_->getName() << std::endl;
+    std::cout << "Extractor version: " << extractor_->getVersion() << std::endl;
+    std::cout << "Extractor description: " << extractor_->getDescription() << std::endl;
+    for (int i = 0; i < extractor_->getSupportedFileTypes().size(); ++i) {
+        std::cout << "Supported file type " << i + 1 << ": " << extractor_->getSupportedFileTypes()[i] << std::endl;
+    else{
+        std::cout << "Extractor not set" << std::endl;
+        wls::cout << "Extractor name: " << extractor_->getName() << std::endl;
+        while (isReady_){
+            if (extractor_ != nullptr){
+                std::cout << "Extractor set" << std::endl;
+                a = input("Enter the file path: ");
+                std::cout << "File path: " << a << std::endl;
+                std::cout << "Extracting file..." << std::endl;
+                for (int i = 0; i < extractor_->getSupportedFileTypes().size(); ++i) {
+                    if (extractor_->getSupportedFileTypes()[i] == a) {
+                        std::cout << "Extractor set" << std::endl;
+                        std::cout << "Extractor name: " << extractor_->getName() << std::endl;
+                        std::cout << "Extractor version: " << extractor_->getVersion() << std::endl;
+                        std::cout << "Extractor description: " << extractor_->getDescription() << std::endl;
+                        std::cout << "Extractor set" << std::endl;
+                        std::cout << "Extractor name: " << extractor_->getName() << std::endl;
+                        std::cout << "Extractor version: " << extractor_->getVersion() << std::endl;
+                    }
+                }
+            }
+            
+        }
+    }
+
+    }
+}
+
+int main() {
+    vulture_cpp_tool tool;
+    std::shared_ptr<Extractor> extractor = std::make_shared<Extractor>();
+    tool.setExtractor(extractor);
+    tool.process();
+    tool.reset();
+    tool.run();
+    
+
+    return 0;
+    
+}
+void vulture_cpp_tool::setExtractor(std::shared_ptr<Extractor> extractor) {
+    extractor_ = extractor;
+    isReady_ = true;
+    std::cout << "Extractor set" << std::endl;
+    std::cout << "Extractor name: " << extractor_->getName() << std::endl;
+    std::cout << "Extractor version: " << extractor_->getVersion() << std::endl;
+    std::cout << "Extractor description: " << extractor_->getDescription() << std::endl;
+    for (int i = 0; i < extractor_->getSupportedFileTypes().size(); ++i) {
+        std::cout << "Supported file type " << i + 1 << ": " << extractor_->getSupportedFileTypes()[i] << std::endl;
+    }
+}
+void vulture_cpp_tool::clearExtractor() {
+    extractor_ = nullptr;
+    isReady_ = false;
+    std::cout << "Extractor cleared" << std::endl;
+    std::cout << "Not ready to extract features" << std::endl;
+}
+void vulture_cpp_tool::process() {
+    if (!isReady_) {
+        std::cerr << "Tool not ready" << std::endl;
+        return;
+    }
+
+    std::cout << "Processing with extractor" << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "Processing iteration " << i + 1 << std::endl;
+    }
+}
+void vulture_cpp_tool::reset() {
+    std::cout << "Resetting tool state" << std::endl;
+    isReady_ = false;
+    extractor_ = nullptr;
+}
+void vulture_cpp_tool::run() {
+    std::cout << "Running tool" << std::endl;
+    for (int i = 0; i < 3; ++i) {
+        std::cout << "Run iteration " << i + 1 << std::endl;
+    }
+}

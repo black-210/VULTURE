@@ -309,8 +309,31 @@ class RadarSimulator:
             'velocity_ms': target_velocity_ms,
             'shifted_frequency_hz': frequency + doppler_freq
         }
+    @staticmethod
+    def snr_to_db(snr: float):
+        """Convert SNR to dB"""
+        return 10 * np.log10(snr)
+    @staticmethod
+    def doppler_shift_to_velocity(doppler_shift_hz: float, frequency: float):
+        """Calculate velocity from Doppler shift"""
+        velocity_ms = doppler_shift_hz * SPEED_OF_LIGHT / (2 * frequency)
 
+        return {
+            'velocity_ms': velocity_ms,
+            'doppler_shift_hz': doppler_shift_hz,
+            'frequency_hz': frequency
+        }
 
+    def doppler_shift()     :
+        """Calculate Doppler shift"""
+        return 2 * target_velocity_ms * frequency / SPEED_OF_LIGHT
+        np.mean (doppler_shift_hz)
+    def velocity_from_doppler(doppler_shift_hz: float, frequency: float):
+        """Calculate velocity from Doppler shift"""
+        velocity_ms = doppler_shift_hz * SPEED_OF_LIGHT / (2 * frequency)
+        return velocity_ms
+    
+    
 
 
         

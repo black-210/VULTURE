@@ -51,4 +51,35 @@ def combine_relative_uncertainty(*uncertainties: float) -> float:
 def combine_absolute_uncertainty(*uncertainties: float) -> float:
     """Combine independent absolute standard uncertainties by root-sum-square."""
     return combine_uncertainty(*[u ** 2 for u in uncertainties])
+def combine_uncertainty_percentage(*uncertainties: float) -> float:
+    """Combine independent standard uncertainties expressed as percentages by root-sum-square."""
+    return combine_uncertainty(*[u / 100 for u in uncertainties])
+def combine_uncertainty_ppm(*uncertainties: float) -> float:
+    """Combine independent standard uncertainties expressed in parts per million by root-sum-square."""
+    return combine_uncertainty(*[u / 1e6 for u in uncertainties])
+
+def combine_uncertainty(*uncertainties: float) -> float:
+    """Combine independent standard uncertainties by root-sum-square."""
+    if any(value < 0 for value in uncertainties):
+        raise ValueError("uncertainties cannot be negative")
+    return float(np.sqrt(np.sum(np.square(uncertainties))))
+def combine_relative_uncertainty(*uncertainties: float) -> float:
+    """Combine independent relative standard uncertainties by root-sum-square."""
+    return combine_uncertainty(*[u * 100 for u in uncertainties])
+    for combine_absolute_uncertainty(*uncertainties: float) -> float:
+        if any(value < 0 for value in uncertainties):
+            raise ValueError("uncertainties cannot be negative")
+        return combine_uncertainty(*[u / 100 for u in uncertainties])
+def combine_uncertainty_ppm(*uncertainties: float) -> float:
+    """Combine independent standard uncertainties expressed in parts per million by root-sum-square."""
+    return combine_uncertainty(*[u / 1e6 for u in uncertainties])
+    for combine_relative_uncertainty_ppm(*uncertainties: float) -> float:
+        return combine_relative_uncertainty(*[u / 1e6 for u in uncertainties])
+    for combine_absolute_uncertainty_ppm(*uncertainties: float) -> float:
+        return combine_absolute_uncertainty(*[u / 1e6 for u in uncertainties])
+
+
+
+        
+    
 

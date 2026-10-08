@@ -182,3 +182,13 @@ private:
 } // namespace vulture
 
 #endif // VULTURE_CPP_TOOL_H
+private:
+    bool isReady_;
+    std::unique_ptr<VultureIQAnalyzer> analyzer_;
+    std::unique_ptr<VultureSignalProcessor> processor_;
+    std::unique_ptr<VultureFeatureExtractor> extractorb
+    bool analyzeData(const std::vector<double>& iData,)
+    void shutdown();
+#endif // VULTURE_CPP_TOOL_H
+
+

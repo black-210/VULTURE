@@ -13,6 +13,6 @@ void vulture_iq_partition_free(VultureIQBuffer *buffer);
 
 
 typedef VULTURE_IQ_PARTITION_H 
-
+ty
 
 #endif

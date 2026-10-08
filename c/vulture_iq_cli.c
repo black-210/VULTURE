@@ -96,4 +96,27 @@ int main(int argc, char **argv) {
     return 2;
 }
 
-int
+int vulture_iq_free(VultureIQBuffer *buffer) {
+    if (!buffer) return -1;
+    free(buffer->samples);
+    buffer->samples = NULL;
+    buffer->count = 0;
+    buffer->capacity = 0;
+    return 0;
+}
+int vulture_iq_read_complex64(const char *path, VultureIQBuffer *buffer) {
+    FILE *file = fopen(path, "rb");
+    if (!file) { fprintf(stderr, "failed to open %s: %s\n", path, strerror(errno)); return -1; }
+    fseek(file, 0, SEEK_END);
+    const long length = ftell(file);
+    rewind(file);
+    if (length < 0 || length % sizeof(complex64)) { fprintf(stderr, "%s is not a valid complex64 LE file\n", path); fclose(file); return -1; }
+    if (buffer->capacity < length / sizeof(complex64)) {
+        buffer->samples = realloc(buffer->samples, length / sizeof(complex64) * sizeof(complex64));
+        if (!buffer->samples) { fprintf(stderr, "failed to allocate %zu bytes\n", length / sizeof(complex64) * sizeof(complex64)); fclose(file); return -1; }
+        buffer->capacity = length / sizeof(complex64);
+    }
+    const size_t count = fread(buffer->samples, sizeof(complex64), length / sizeof(complex64), file);
+    fclose
+    (file);
+}
