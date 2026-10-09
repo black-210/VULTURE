@@ -28,7 +28,7 @@ def _load_capture(path: str) -> tuple[np.ndarray, float]:
     suffix = file_path.suffix.lower()
 
     if suffix == ".npz":
-        data = np.load(file_path)
+        data = np.load(file_path, allow_pickle=True)
         samples = data.get("iq")
         if samples is None:
             raise ValueError(f"NPZ file missing 'iq' array: {path}")
@@ -82,7 +82,6 @@ def info() -> None:
     click.echo("RF-Vulnerability: vulture rf-vuln --help")
     click.echo("Chemical-RF: vulture chemical-rf --help")
     click.echo("Forensic: vulture forensic --help")
-    click.echo("SDR: vulture sdr --help")
     click.echo("IQ: vulture iq --help (convert .iq ↔ .npz)")
     click.echo("Offline analysis: vulture offline --help")
     click.echo("Lab: vulture lab --help")
@@ -223,41 +222,9 @@ def rf_vuln_report(input_path: str, case_id: str, subject: str, frequency_hz: fl
     click.echo(f"  Evidence Hash: {analysis.evidence_hash}")
 
 
-@cli.group("rf-dna")
-def rf_dna() -> None:
-    """Integrated receive-only RF-DNA simulation, analysis, and reporting commands."""
-
-
-def _run_rf_dna(args: tuple[str, ...]) -> None:
-    """Forward integrated commands to the existing RF-DNA Click group."""
-    from vulture.rf_dna.cli import cli as rf_dna_cli
-
-    rf_dna_cli.main(list(args), standalone_mode=False)
-
-
-@rf_dna.command("status")
-def rf_dna_status() -> None:
-    """Show RF-DNA capabilities through the main VULTURE command."""
-    _run_rf_dna(("status",))
-
-
-@rf_dna.command("simulate")
-@click.option("--profile", default="noise", show_default=True)
-@click.option("--duration", type=float, default=1.0, show_default=True)
-@click.option("--sample-rate", type=float, default=1_000_000, show_default=True)
-@click.option("--seed", type=int, default=7, show_default=True)
-@click.option("--output", type=click.Path(dir_okay=False), required=True)
-def rf_dna_simulate(profile: str, duration: float, sample_rate: float, seed: int, output: str) -> None:
-    """Simulate an RF-DNA profile and save to .npz."""
-    _run_rf_dna(("simulate", "--profile", profile, "--duration", str(duration), "--sample-rate", str(sample_rate), "--seed", str(seed), "--output", output))
-
-
-@rf_dna.command("analyze")
-@click.option("--input", "input_path", type=click.Path(exists=True, dir_okay=False), required=True, help="NPZ or IQ capture file")
-@click.option("--frequency-hz", required=True, type=float)
-def rf_dna_analyze(input_path: str, frequency_hz: float) -> None:
-    """Analyze RF-DNA fingerprint from a capture file."""
-    _run_rf_dna(("analyze", "--input", input_path, "--frequency-hz", str(frequency_hz)))
+# Import and register RF-DNA CLI
+from .rf_dna.cli import cli as rf_dna_cli
+cli.add_command(rf_dna_cli, name="rf-dna")
 
 
 if __name__ == "__main__":
