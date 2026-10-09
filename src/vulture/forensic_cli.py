@@ -24,7 +24,7 @@ def _load_capture(path: str) -> tuple[np.ndarray, float]:
 
     suffix = file_path.suffix.lower()
     if suffix == ".npz":
-        data = np.load(file_path)
+        data = np.load(file_path, allow_pickle=True)
         samples = data.get("iq")
         if samples is None:
             raise ValueError(f"NPZ file missing 'iq' array: {path}")
