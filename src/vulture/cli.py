@@ -16,6 +16,7 @@ from .forensic_cli import forensic_cli
 from .lab_cli import lab_cli
 from .offline_tools.cli import offline_cli
 from .iq_cli import iq
+from .sdr_cli import sdr_cli
 from .rf_dna.sdr_adapter import InteractiveShell
 
 
@@ -68,6 +69,7 @@ cli.add_command(lab_cli, name="lab")
 cli.add_command(iq, name="iq")
 cli.add_command(offline_cli, name="offline")
 cli.add_command(forensic_cli, name="forensic")
+cli.add_command(sdr_cli, name="sdr")
 
 
 @cli.command()
@@ -85,6 +87,7 @@ def info() -> None:
     click.echo("IQ: vulture iq --help (convert .iq ↔ .npz)")
     click.echo("Offline analysis: vulture offline --help")
     click.echo("Lab: vulture lab --help")
+    click.echo("SDR: vulture sdr --help (receive-only operations)")
     click.echo("Interactive: vulture --interactive")
 
 
@@ -179,7 +182,7 @@ def rf_vuln_device(input_path: str, case_id: str, subject: str, frequency_hz: fl
     if fmt == "json":
         payload = analysis.to_json()
     elif fmt == "html":
-        payload = """<!DOCTYPE html><html><head><title>VULTURE RF Vulnerability Report</title></head><body><h1>RF Vulnerability Assessment</h1><pre>""" + analysis.to_text().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</pre></body></html>"
+        payload = """<!DOCTYPE html><html><head><title>VULTURE RF Vulnerability Report</title></head><body><h1>RF Vulnerability Assessment</h1><pre>""" + analysis.to_text().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + """</pre></body></html>"""
     else:
         payload = analysis.to_text()
 
@@ -214,7 +217,7 @@ def rf_vuln_report(input_path: str, case_id: str, subject: str, frequency_hz: fl
     elif fmt == "txt":
         content = analysis.to_text()
     else:
-        content = """<!DOCTYPE html><html><head><title>VULTURE RF Vulnerability Report</title></head><body><h1>RF Vulnerability Assessment</h1><pre>""" + analysis.to_text().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</pre></body></html>"
+        content = """<!DOCTYPE html><html><head><title>VULTURE RF Vulnerability Report</title></head><body><h1>RF Vulnerability Assessment</h1><pre>""" + analysis.to_text().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + """</pre></body></html>"""
 
     output_path.write_text(content)
     click.echo(f"✓ Report saved to {output}")
