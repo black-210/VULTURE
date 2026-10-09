@@ -6,6 +6,7 @@ network access, hardware probing, or RF transmission.
 from __future__ import annotations
 
 import json
+import shlex
 from pathlib import Path
 
 import click
@@ -15,7 +16,7 @@ from .forensic_cli import forensic_cli
 from .lab_cli import lab_cli
 from .offline_tools.cli import offline_cli
 from .iq_cli import iq
-from .interactive_shell import InteractiveShell
+from .rf_dna.sdr_adapter import InteractiveShell
 
 
 def _load_capture(path: str) -> tuple[np.ndarray, float]:
