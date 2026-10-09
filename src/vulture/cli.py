@@ -14,7 +14,7 @@ import numpy as np
 from .forensic_cli import forensic_cli
 from .lab_cli import lab_cli
 from .offline_tools.cli import offline_cli
-from .iq_tools import iq
+from .iq_cli import iq
 from .interactive_shell import InteractiveShell
 
 
